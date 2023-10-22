@@ -1,5 +1,14 @@
 {
   "ProxyAdmin": null,
+  "Whitelist": null,
+  "L1MessageQueue": {
+    "implementation": null,
+    "proxy": null
+  },
+  "L2GasPriceOracle": {
+    "implementation": null,
+    "proxy": null
+  },
   "ZKRollup": {
     "implementation": null,
     "proxy": null
@@ -20,5 +29,30 @@
     "implementation": null,
     "proxy": null
   },
-  "Whitelist": "0x048e0Df7311a1F57B7de09EEa695C1249D1Ae76E"
+  "ScrollChain": {
+    "verifier": null,
+    "implementation": null,
+    "proxy": null
+  },
+  "L1CustomERC20Gateway": {
+    "implementation": null,
+    "proxy": null
+  },
+  "L1ERC721Gateway": {
+    "implementation": null,
+    "proxy": null
+  },
+  "L1ERC1155Gateway": {
+    "implementation": null,
+    "proxy": null
+  },
+  "L1ETHGateway": {
+    "implementation": null,
+    "proxy": null
+  },
+  "EnforcedTxGateway": {
+    "implementation": null,
+    "proxy": null
+  },
+  "L2TxFeeVault": null
 }
