@@ -28,13 +28,14 @@ async function main() {
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
   
-  const OWNER = process.env.owner || "0xe6F7E94BA0a1359D125e4226E390Ed9B419F72DF";
-  const tx2 = await ScrollChain.addSequencer(OWNER);
+  const SEQUENCER_ADDRESS = process.env.SEQUENCER_ADDRESS || "0xe6F7E94BA0a1359D125e4226E390Ed9B419F72DF";
+  const PROVER_ADDRESS = process.env.PROVER_ADDRESS || "0xe6F7E94BA0a1359D125e4226E390Ed9B419F72DF";
+  const tx2 = await ScrollChain.addSequencer(SEQUENCER_ADDRESS);
   console.log("initialize ScrollChain addSequencer, hash:", tx2.hash);
   const receipt2 = await tx2.wait();
   console.log(`✅ Done, gas used: ${receipt2.gasUsed}`);
 
-  const tx3 = await ScrollChain.addProver(OWNER);
+  const tx3 = await ScrollChain.addProver(PROVER_ADDRESS);
   console.log("initialize ScrollChain addProver, hash:", tx3.hash);
   const receipt3 = await tx3.wait();
   console.log(`✅ Done, gas used: ${receipt3.gasUsed}`);

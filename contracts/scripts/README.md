@@ -48,6 +48,7 @@ npx hardhat --network $layer1 run scripts/initialize_scroll_chain.ts
 npx hardhat --network $layer1 run scripts/initializeL2GasPriceOracle.ts
 npx hardhat --network $layer1 run scripts/initializeL1MessageQueue.ts
 npx hardhat --network $layer1 run scripts/initializeL1Messager.ts
+npx hardhat --network $layer1 run scripts/initializeL1ETHGateway.ts
 
 # npx hardhat --network $layer1 run scripts/initialize_l1_erc20_gateway.ts
 # npx hardhat --network $layer1 run scripts/initialize_l1_gateway_router.ts
@@ -59,6 +60,7 @@ npx hardhat --network $layer1 run scripts/initializeL1Messager.ts
 # initalize contracts in layer 2, should set proper bash env variables first
 npx hardhat --network $layer2 run scripts/initializeL2Predeploys.ts
 npx hardhat --network $layer2 run scripts/initializeL2ScrollMessenger.ts
+npx hardhat --network $layer2 run scripts/initializeL2ETHGateway.ts
 
 # npx hardhat --network $layer2 run scripts/initialize_l2_erc20_gateway.ts
 # npx hardhat --network $layer2 run scripts/initialize_l2_gateway_router.ts
