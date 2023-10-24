@@ -20,7 +20,7 @@ dotenv.config();
 
 async function main() {
     const addressFile = selectAddressFile(hre.network.name);
-    const addressFileL2 = selectAddressFile("l1geth");
+    const addressFileL1 = selectAddressFile("l1geth");
 
     const [deployer] = await ethers.getSigners();
 
@@ -30,7 +30,7 @@ async function main() {
         addressFile.get("L2ScrollMessenger.proxy"),
         deployer
     );
-    const L1_SCROLL_MESSENGER_PROXY_ADDR = addressFileL2.get("L1ScrollMessenger.proxy")
+    const L1_SCROLL_MESSENGER_PROXY_ADDR = addressFileL1.get("L1ScrollMessenger.proxy")
     const tx = await L2ScrollMessenger.initialize(L1_SCROLL_MESSENGER_PROXY_ADDR)
     console.log("initialize L2ScrollMessenger, hash:", tx.hash);
     const receipt = await tx.wait();
