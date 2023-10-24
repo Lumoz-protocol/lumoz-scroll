@@ -19,11 +19,11 @@ async function main() {
     deployer
   );
 
-  const ZKRollupAddress = addressFile.get("ZKRollup.proxy");
+  const verifierAddress = addressFile.get("ZKRollup.multiple_verifier");
   const L1MessageQueueAddress = addressFile.get("L1MessageQueue.proxy");
   const maxNumTxInChunk = 100
 
-  const tx = await ScrollChain.initialize(L1MessageQueueAddress, ZKRollupAddress, maxNumTxInChunk);
+  const tx = await ScrollChain.initialize(L1MessageQueueAddress, verifierAddress, maxNumTxInChunk);
   console.log("initialize ScrollChain, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
