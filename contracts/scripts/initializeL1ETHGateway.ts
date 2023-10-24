@@ -19,6 +19,7 @@ async function main() {
     addressFile.get("L1ETHGateway.proxy"),
     deployer
   );
+  
   const L2_ETH_GATEWAY_PROXY_ADDR = addressFileL2.get("L2ETHGateway.proxy")
   const L1_GATEWAY_ROUTER_PROXY_ADDR = addressFile.get("L1GatewayRouter.proxy")
   const L1_SCROLL_MESSENGER_PROXY_ADDR = addressFile.get("L1ScrollMessenger.proxy")

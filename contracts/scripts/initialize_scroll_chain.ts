@@ -19,7 +19,7 @@ async function main() {
     deployer
   );
 
-  const verifierAddress = addressFile.get("ZKRollup.multiple_verifier");
+  const verifierAddress = addressFile.get("ScrollChain.multiple_verifier");
   const L1MessageQueueAddress = addressFile.get("L1MessageQueue.proxy");
   const maxNumTxInChunk = 100
 

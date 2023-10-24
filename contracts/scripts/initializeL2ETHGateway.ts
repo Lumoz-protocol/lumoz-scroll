@@ -10,7 +10,7 @@ dotenv.config();
 
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
-  const addressFileL2 = selectAddressFile("l1geth");
+  const addressFileL1 = selectAddressFile("l1geth");
 
   const [deployer] = await ethers.getSigners();
 
@@ -19,7 +19,8 @@ async function main() {
     addressFile.get("L2ETHGateway.proxy"),
     deployer
   );
-  const L1_ETH_GATEWAY_PROXY_ADDR = addressFileL2.get("L1ETHGateway.proxy")
+
+  const L1_ETH_GATEWAY_PROXY_ADDR = addressFileL1.get("L1ETHGateway.proxy")
   const L2_GATEWAY_ROUTER_PROXY_ADDR = addressFile.get("L2GatewayRouter.proxy")
   const L2_SCROLL_MESSENGER_PROXY_ADDR = addressFile.get("L2ScrollMessenger.proxy")
   const tx = await L2ETHGateway.initialize(
