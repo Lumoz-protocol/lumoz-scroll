@@ -315,8 +315,14 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain {
             abi.encodePacked(layer2ChainId, _prevStateRoot, _postStateRoot, _withdrawRoot, _dataHash)
         );
 
+        // #if DUMMY_VERIFIER
         // verify batch
+        if (_aggrProof.length > 0) {
+            IRollupVerifier(verifier).verifyAggregateProof(_batchIndex, _aggrProof, _publicInputHash);
+        }
+        // #else
         IRollupVerifier(verifier).verifyAggregateProof(_batchIndex, _aggrProof, _publicInputHash);
+        // #endif
 
         // check and update lastFinalizedBatchIndex
         unchecked {
