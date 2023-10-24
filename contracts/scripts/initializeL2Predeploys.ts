@@ -20,7 +20,7 @@ dotenv.config();
 
 async function main() {
     const addressFile = selectAddressFile(hre.network.name);
-    const addressFileL2 = selectAddressFile("l2geth");
+    const addressFileL1 = selectAddressFile("l1geth");
     const [deployer] = await ethers.getSigners();
 
     // initialize L2MessageQueue
@@ -29,7 +29,7 @@ async function main() {
         addressFile.get("L2MessageQueue"),
         deployer
     );
-    const L2_SCROLL_MESSENGER_PROXY_ADDR = addressFileL2.get("L2ScrollMessenger.proxy")
+    const L2_SCROLL_MESSENGER_PROXY_ADDR = addressFile.get("L2ScrollMessenger.proxy")
     const tx = await L2MessageQueue.initialize(L2_SCROLL_MESSENGER_PROXY_ADDR)
     console.log("initialize L2MessageQueue, hash:", tx.hash);
     const receipt = await tx.wait();
@@ -52,7 +52,7 @@ async function main() {
         addressFile.get("L1GasPriceOracle"),
         deployer
     );
-    const L2_WHITELIST_ADDR = addressFileL2.get("Whitelist")
+    const L2_WHITELIST_ADDR = addressFile.get("Whitelist")
     const tx3 = await L1GasPriceOracle.updateWhitelist(L2_WHITELIST_ADDR)
     console.log("initialize L1GasPriceOracle, hash:", tx3.hash);
     const receipt3 = await tx3.wait();
