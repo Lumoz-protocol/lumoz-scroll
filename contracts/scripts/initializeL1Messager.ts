@@ -23,7 +23,7 @@ async function main() {
   const L2_SCROLL_MESSENGER_PROXY_ADDR = addressFileL2.get("L2ScrollMessenger.proxy")
   const L1_SCROLL_CHAIN_PROXY_ADDR = addressFile.get("ScrollChain.proxy")
   const L1_MESSAGE_QUEUE_PROXY_ADDR = addressFile.get("L1MessageQueue.proxy")
-  const L2_FEE_VAULT_ADDR = addressFile.get("L2TxFeeVault")
+  const L2_FEE_VAULT_ADDR = addressFileL2.get("L2TxFeeVault")
 
   const tx = await L1Messageer.initialize(
     L2_SCROLL_MESSENGER_PROXY_ADDR,
