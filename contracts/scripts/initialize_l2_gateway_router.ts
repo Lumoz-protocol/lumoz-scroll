@@ -22,15 +22,13 @@ async function main() {
   const L2StandardERC20GatewayAddress = addressFile.get("L2StandardERC20Gateway.proxy");
   const L2ETHGatewayAddress = addressFile.get("L2ETHGateway.proxy");
 
-  if ((await L2GatewayRouter.counterpart()) === constants.AddressZero) {
-    const tx = await L2GatewayRouter.initialize(
-      L2ETHGatewayAddress,
-      L2StandardERC20GatewayAddress,
-    );
-    console.log("initialize L2GatewayRouter, hash:", tx.hash);
-    const receipt = await tx.wait();
-    console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
-  }
+  const tx = await L2GatewayRouter.initialize(
+    L2ETHGatewayAddress,
+    L2StandardERC20GatewayAddress,
+  );
+  console.log("initialize L2GatewayRouter, hash:", tx.hash);
+  const receipt = await tx.wait();
+  console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
