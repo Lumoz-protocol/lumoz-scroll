@@ -4,23 +4,23 @@ import { HardhatUserConfig, subtask } from "hardhat/config";
 import * as toml from "toml";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-solpp";
 import "@typechain/hardhat";
 import "@primitivefi/hardhat-dodoc";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import { readFileSync } from "fs";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
+import "@openzeppelin/hardhat-upgrades";
 
 dotenv.config();
 
 // default values here to avoid failures when running hardhat
-const RINKEBY_RPC = process.env.RINKEBY_RPC || "1".repeat(32);
-const SCROLL_L1_RPC = "https://rpc.ankr.com/eth_goerli";
-const SCROLL_L2_RPC = "http://61.10.9.22:10051/";
+const SCROLL_L1_RPC = process.env.SCROLL_L1_RPC || "https://rpc.ankr.com/eth_goerli";
+const SCROLL_L2_RPC = process.env.SCROLL_L2_RPC || "http://61.10.9.22:10051/";
 
-const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || "1".repeat(64);
-const L1_DEPLOYER_PRIVATE_KEY = process.env.L1_DEPLOYER_PRIVATE_KEY|| "1".repeat(64);
-const L2_DEPLOYER_PRIVATE_KEY = process.env.L2_DEPLOYER_PRIVATE_KEY|| "1".repeat(64);
+const L1_DEPLOYER_PRIVATE_KEY = process.env.L1_DEPLOYER_PRIVATE_KEY || "1".repeat(64);
+const L2_DEPLOYER_PRIVATE_KEY = process.env.L2_DEPLOYER_PRIVATE_KEY || "1".repeat(64);
 
 const SOLC_DEFAULT = "0.8.16";
 
@@ -53,11 +53,14 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  solpp: {
+    defs: (() => {
+      return {
+        DUMMY_VERIFIER: true,
+      };
+    })(),
+  },
   networks: {
-    rinkeby: {
-      url: RINKEBY_RPC,
-      accounts: [RINKEBY_PRIVATE_KEY],
-    },
     l1geth: {
       url: SCROLL_L1_RPC,
       gasPrice: 1500000000,

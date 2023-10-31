@@ -22,12 +22,20 @@ async function main() {
     addressFile.set("ScrollChain.verifier", verifier.address);
   }
 
+  if (!addressFile.get("ScrollChain.multiple_verifier")) {
+    console.log(">> Deploy MultipleVersionRollupVerifier");
+    const multipleRollupVerifier = await ethers.getContractFactory("MultipleVersionRollupVerifier", deployer);
+    const verifier = await multipleRollupVerifier.deploy(addressFile.get("ScrollChain.verifier"));
+    console.log(`>> waiting for transaction: ${verifier.deployTransaction.hash}`);
+    await verifier.deployed();
+    console.log(`✅ MultipleVersionRollupVerifier deployed at ${verifier.address}`);
+    addressFile.set("ScrollChain.multiple_verifier", verifier.address);
+  }
+
   if (!addressFile.get("ScrollChain.implementation")) {
     console.log(">> Deploy ScrollChain implementation");
     const ScrollChain = await ethers.getContractFactory("ScrollChain", {
-      libraries: {
-       
-      },
+      libraries: {},
       signer: deployer,
     });
     const impl = await ScrollChain.deploy(CHAIN_ID_L2);
@@ -38,7 +46,6 @@ async function main() {
   }
 
   const impl = addressFile.get("ScrollChain.implementation") as string;
-
   if (!addressFile.get("ScrollChain.proxy")) {
     console.log(">> Deploy ScrollChain proxy");
     const TransparentUpgradeableProxy = await ethers.getContractFactory("TransparentUpgradeableProxy", deployer);
@@ -51,7 +58,9 @@ async function main() {
 
   // Export contract address to testnet.
   console.log(
-    `testnet-export: ${addressFile.get("ScrollChain.implementation")};${addressFile.get("ScrollChain.proxy")}`
+    `testnet-export: 
+    ScrollChain.implementation: ${addressFile.get("ScrollChain.implementation")};
+    ScrollChain.proxy: ${addressFile.get("ScrollChain.proxy")}`
   );
 }
 

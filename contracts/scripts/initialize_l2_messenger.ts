@@ -7,20 +7,20 @@ import { selectAddressFile } from "./utils";
 dotenv.config();
 
 async function main() {
-  const addressFile = selectAddressFile(hre.network.name);
+  const addressFileL1 = selectAddressFile("l1geth");
+  const addressFileL2 = selectAddressFile(hre.network.name);
 
   const [deployer] = await ethers.getSigners();
 
-  const L1GatewayRouter = await ethers.getContractAt(
-    "L1GatewayRouter",
-    addressFile.get("L1GatewayRouter.proxy"),
+  // initialize L2ScrollMessenger
+  const L2ScrollMessenger = await ethers.getContractAt(
+    "L2ScrollMessenger",
+    addressFileL2.get("L2ScrollMessenger.proxy"),
     deployer
   );
-
-  const L1ETHGatewayAddress = addressFile.get("L1ETHGateway.proxy");
-  const L1StandardERC20GatewayAddress = addressFile.get("L1StandardERC20Gateway.proxy");
-  const tx = await L1GatewayRouter.initialize(L1ETHGatewayAddress, L1StandardERC20GatewayAddress);
-  console.log("initialize L1GatewayRouter, hash:", tx.hash);
+  const L1_SCROLL_MESSENGER_PROXY_ADDR = addressFileL1.get("L1ScrollMessenger.proxy");
+  const tx = await L2ScrollMessenger.initialize(L1_SCROLL_MESSENGER_PROXY_ADDR);
+  console.log("initialize L2ScrollMessenger, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }

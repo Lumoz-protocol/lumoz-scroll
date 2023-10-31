@@ -7,23 +7,23 @@ async function main() {
   const addressFile = selectAddressFile(hre.network.name);
   const contractName = process.env.CONTRACT_NAME!;
   const [deployer] = await ethers.getSigners();
-  const OWNER = process.env.owner
-  const TxFeeVault_recipient = process.env.TxFeeVault_recipient
-  const minWithdrawalAmount = process.env.minWithdrawalAmount
+  const txFeeVaultRecipient = process.env.TxFeeVaultRecipient;
+  const minWithdrawalAmount = process.env.MinWithdrawalAmount;
 
   if (!addressFile.get(contractName)) {
     console.log(`>> Deploy ${contractName}`);
-    var contract = await ethers.getContractFactory(contractName, deployer);
-    if (contractName=="L2TxFeeVault"){
-        var contract_ = await contract.deploy(OWNER, TxFeeVault_recipient, minWithdrawalAmount);
+    const contractFactory = await ethers.getContractFactory(contractName, deployer);
+    let contract;
+    if (contractName === "L2TxFeeVault") {
+      contract = await contractFactory.deploy(deployer.address, txFeeVaultRecipient, minWithdrawalAmount);
     } else {
-        var contract_ = await contract.deploy(OWNER);
+      contract = await contractFactory.deploy(deployer.address);
     }
 
-    console.log(`>> waiting for transaction: ${contract_.deployTransaction.hash}`);
-    await contract_.deployed();
-    console.log(`✅ ${contractName} deployed at ${contract_.address}`);
-    addressFile.set(contractName, contract_.address);
+    console.log(`>> waiting for transaction: ${contract.deployTransaction.hash}`);
+    await contract.deployed();
+    console.log(`✅ ${contractName} deployed at ${contract.address}`);
+    addressFile.set(contractName, contract.address);
   }
 
   // Export contract address to testnet.

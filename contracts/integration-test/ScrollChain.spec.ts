@@ -3,11 +3,12 @@
 import { concat } from "ethers/lib/utils";
 import { constants } from "ethers";
 import { ethers } from "hardhat";
-import { ScrollChain, L1MessageQueue } from "../typechain";
+import { ScrollChainWithoutTwoStepCommit, L1MessageQueue } from "../typechain";
 
-describe("ScrollChain", async () => {
+describe("ScrollChainWithoutTwoStepCommit", async () => {
   let queue: L1MessageQueue;
-  let chain: ScrollChain;
+  let chain: ScrollChainWithoutTwoStepCommit;
+
 
   beforeEach(async () => {
     const [deployer] = await ethers.getSigners();
@@ -25,12 +26,12 @@ describe("ScrollChain", async () => {
     await queueProxy.deployed();
     queue = await ethers.getContractAt("L1MessageQueue", queueProxy.address, deployer);
 
-    const ScrollChain = await ethers.getContractFactory("ScrollChain", deployer);
+    const ScrollChain = await ethers.getContractFactory("ScrollChainWithoutTwoStepCommit", deployer);
     const chainImpl = await ScrollChain.deploy(0);
     await chainImpl.deployed();
     const chainProxy = await TransparentUpgradeableProxy.deploy(chainImpl.address, admin.address, "0x");
     await chainProxy.deployed();
-    chain = await ethers.getContractAt("ScrollChain", chainProxy.address, deployer);
+    chain = await ethers.getContractAt("ScrollChainWithoutTwoStepCommit", chainProxy.address, deployer);
 
     await chain.initialize(queue.address, constants.AddressZero, 100);
     await chain.addSequencer(deployer.address);
@@ -44,7 +45,7 @@ describe("ScrollChain", async () => {
   });
 
   // @note skip this benchmark tests
-  it.skip("should succeed", async () => {
+  it("should succeed", async () => {
     const batchHeader0 = new Uint8Array(89);
     batchHeader0[25] = 1;
     await chain.importGenesisBatch(batchHeader0, "0x0000000000000000000000000000000000000000000000000000000000000001");
