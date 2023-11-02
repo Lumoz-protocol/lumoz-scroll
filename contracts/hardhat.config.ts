@@ -4,7 +4,7 @@ import { HardhatUserConfig, subtask } from "hardhat/config";
 import * as toml from "toml";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
-import '@nomiclabs/hardhat-solpp';
+import "@nomiclabs/hardhat-solpp";
 import "@typechain/hardhat";
 import "@primitivefi/hardhat-dodoc";
 import "hardhat-gas-reporter";
@@ -20,8 +20,8 @@ const SCROLL_L1_RPC = "https://rpc.ankr.com/eth_goerli";
 const SCROLL_L2_RPC = "http://61.10.9.22:10051/";
 
 const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || "1".repeat(64);
-const L1_DEPLOYER_PRIVATE_KEY = process.env.L1_DEPLOYER_PRIVATE_KEY|| "1".repeat(64);
-const L2_DEPLOYER_PRIVATE_KEY = process.env.L2_DEPLOYER_PRIVATE_KEY|| "1".repeat(64);
+const L1_DEPLOYER_PRIVATE_KEY = process.env.L1_DEPLOYER_PRIVATE_KEY || "1".repeat(64);
+const L2_DEPLOYER_PRIVATE_KEY = process.env.L2_DEPLOYER_PRIVATE_KEY || "1".repeat(64);
 
 const SOLC_DEFAULT = "0.8.16";
 
@@ -57,9 +57,9 @@ const config: HardhatUserConfig = {
   solpp: {
     defs: (() => {
       return {
-        DUMMY_VERIFIER: true
-      }
-    })()
+        DUMMY_VERIFIER: true,
+      };
+    })(),
   },
   networks: {
     rinkeby: {
