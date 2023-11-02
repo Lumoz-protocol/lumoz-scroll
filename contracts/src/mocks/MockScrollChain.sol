@@ -5,22 +5,22 @@ pragma solidity =0.8.16;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-import {IL1MessageQueue} from "./IL1MessageQueue.sol";
-import {IScrollChain} from "./IScrollChain.sol";
-import {BatchHeaderV0Codec} from "../../libraries/codec/BatchHeaderV0Codec.sol";
-import {ChunkCodec} from "../../libraries/codec/ChunkCodec.sol";
-import {IRollupVerifier} from "../../libraries/verifier/IRollupVerifier.sol";
+import {IL1MessageQueue} from "../L1/rollup/IL1MessageQueue.sol";
+import {IScrollChain} from "../L1/rollup/IScrollChain.sol";
+import {BatchHeaderV0Codec} from "../libraries/codec/BatchHeaderV0Codec.sol";
+import {ChunkCodec} from "../libraries/codec/ChunkCodec.sol";
+import {IRollupVerifier} from "../libraries/verifier/IRollupVerifier.sol";
 
 // lumoz contracts import
-import "../../interfaces/ISlotAdapter.sol";
-import "../../interfaces/IScrollChainErrors.sol";
+import "../interfaces/ISlotAdapter.sol";
+import "../interfaces/IScrollChainErrors.sol";
 
 // solhint-disable no-inline-assembly
 // solhint-disable reason-string
 
 /// @title ScrollChain
 /// @notice This contract maintains data for the Scroll rollup.
-contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, IScrollChainErrors {
+contract MockScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, IScrollChainErrors {
     /**********
      * Structs *
      **********/
@@ -134,7 +134,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
     IDeposit public ideDeposit;
 
     // blocknumber --> true
-    mapping(uint256 => bool) public blockCommitBatches;
+    mapping(uint => bool) public blockCommitBatches;
 
     // finalNewBatch --> proofHash
     mapping(uint256 => mapping(address => ProofHashData)) public proverCommitProofHash;
@@ -279,7 +279,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
 
         uint256 _batchIndex = BatchHeaderV0Codec.batchIndex(batchPtr);
         uint256 _totalL1MessagesPoppedOverall = BatchHeaderV0Codec.totalL1MessagePopped(batchPtr);
-        require(committedBatches[_batchIndex] == _parentBatchHash, "incorrect parent batch hash");
+        // require(committedBatches[_batchIndex] == _parentBatchHash, "incorrect parent batch hash");
         require(committedBatches[_batchIndex + 1] == 0, "batch already committed");
 
         // load `dataPtr` and reserve the memory region for chunk data hashes
@@ -357,6 +357,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
             revert ErrorBatchHash(committedBatches[batchIndex]);
         }
 
+        // exceed the proofHashCommitEpoch + proofCommitEpoch, but still haven't proved. need to reset.
         uint256 _finalNewBatchNumber = committedBatchInfo[batchIndex].blockNumber;
         if (
             _finalNewBatchNumber > 0 &&
@@ -439,7 +440,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
 
         bytes32 _dataHash = BatchHeaderV0Codec.dataHash(memPtr);
         uint256 _batchIndex = BatchHeaderV0Codec.batchIndex(memPtr);
-        require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
+        // require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
 
         // make sure committing proof complies with the two step commitment rule
         isCommitProofAllowed(_batchIndex);
@@ -463,67 +464,54 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
             abi.encodePacked(layer2ChainId, _prevStateRoot, _postStateRoot, _withdrawRoot, _dataHash)
         );
 
-        bool ifVerifySucceed = true;
-        // #if DUMMY_VERIFIER
         // verify batch
-        if (_aggrProof.length > 0) {
-            try IRollupVerifier(verifier).verifyAggregateProof(_batchIndex, _aggrProof, _publicInputHash) {} catch {
-                ifVerifySucceed = false;
+        // try IRollupVerifier(verifier).verifyAggregateProof(_batchIndex, _aggrProof, _publicInputHash) {
+        // authenticated proof, migrate state
+        proofNum[msg.sender]++;
+        slotAdapter.distributeRewards(msg.sender, uint64(_batchIndex), uint64(_batchIndex), ideDeposit);
+        updateProofLiquidation(proofHash, false);
+
+        if (!committedBatchInfo[_batchIndex].proofSubmitted) {
+            // check and update lastFinalizedBatchIndex
+            unchecked {
+                require(lastFinalizedBatchIndex + 1 == _batchIndex, "incorrect batch index");
+                lastFinalizedBatchIndex = _batchIndex;
             }
-        }
-        // #else
-        try IRollupVerifier(verifier).verifyAggregateProof(_batchIndex, _aggrProof, _publicInputHash) {} catch {
-            ifVerifySucceed = false;
-        }
-        // #endif
 
-        if (ifVerifySucceed) {
-            // authenticated proof, migrate state
-            proofNum[msg.sender]++;
-            slotAdapter.distributeRewards(msg.sender, uint64(_batchIndex), uint64(_batchIndex), ideDeposit);
-            updateProofLiquidation(proofHash, false);
+            // record state root and withdraw root
+            finalizedStateRoots[_batchIndex] = _postStateRoot;
+            withdrawRoots[_batchIndex] = _withdrawRoot;
 
-            if (!committedBatchInfo[_batchIndex].proofSubmitted) {
-                // check and update lastFinalizedBatchIndex
+            emit FinalizeBatch(_batchIndex, _batchHash, _postStateRoot, _withdrawRoot);
+
+            // Pop finalized and non-skipped message from L1MessageQueue.
+            uint256 _l1MessagePopped = BatchHeaderV0Codec.l1MessagePopped(memPtr);
+            if (_l1MessagePopped > 0) {
+                IL1MessageQueue _queue = IL1MessageQueue(messageQueue);
+
                 unchecked {
-                    require(lastFinalizedBatchIndex + 1 == _batchIndex, "incorrect batch index");
-                    lastFinalizedBatchIndex = _batchIndex;
-                }
+                    uint256 _startIndex = BatchHeaderV0Codec.totalL1MessagePopped(memPtr) - _l1MessagePopped;
 
-                // record state root and withdraw root
-                finalizedStateRoots[_batchIndex] = _postStateRoot;
-                withdrawRoots[_batchIndex] = _withdrawRoot;
-
-                emit FinalizeBatch(_batchIndex, _batchHash, _postStateRoot, _withdrawRoot);
-
-                // Pop finalized and non-skipped message from L1MessageQueue.
-                uint256 _l1MessagePopped = BatchHeaderV0Codec.l1MessagePopped(memPtr);
-                if (_l1MessagePopped > 0) {
-                    IL1MessageQueue _queue = IL1MessageQueue(messageQueue);
-
-                    unchecked {
-                        uint256 _startIndex = BatchHeaderV0Codec.totalL1MessagePopped(memPtr) - _l1MessagePopped;
-
-                        for (uint256 i = 0; i < _l1MessagePopped; i += 256) {
-                            uint256 _count = 256;
-                            if (_l1MessagePopped - i < _count) {
-                                _count = _l1MessagePopped - i;
-                            }
-                            uint256 _skippedBitmap = BatchHeaderV0Codec.skippedBitmap(memPtr, i / 256);
-
-                            _queue.popCrossDomainMessage(_startIndex, _count, _skippedBitmap);
-
-                            _startIndex += 256;
+                    for (uint256 i = 0; i < _l1MessagePopped; i += 256) {
+                        uint256 _count = 256;
+                        if (_l1MessagePopped - i < _count) {
+                            _count = _l1MessagePopped - i;
                         }
+                        uint256 _skippedBitmap = BatchHeaderV0Codec.skippedBitmap(memPtr, i / 256);
+
+                        _queue.popCrossDomainMessage(_startIndex, _count, _skippedBitmap);
+
+                        _startIndex += 256;
                     }
                 }
-                committedBatchInfo[_batchIndex].proofSubmitted = true;
             }
-            proverCommitProofHash[_batchIndex][msg.sender].proof = true;
-        } else {
-            slotAdapter.punish(msg.sender, ideDeposit, incorrectProofHashPunishAmount);
-            updateProofLiquidation(proofHash, true);
+            committedBatchInfo[_batchIndex].proofSubmitted = true;
         }
+        proverCommitProofHash[_batchIndex][msg.sender].proof = true;
+        // } catch {
+        //     slotAdapter.punish(msg.sender, ideDeposit, incorrectProofHashPunishAmount);
+        //     updateProofLiquidation(proofHash, true);
+        // }
     }
 
     /************************

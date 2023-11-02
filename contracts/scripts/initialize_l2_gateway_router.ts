@@ -1,7 +1,5 @@
 /* eslint-disable node/no-missing-import */
 import * as dotenv from "dotenv";
-
-import { constants } from "ethers";
 import * as hre from "hardhat";
 import { ethers } from "hardhat";
 import { selectAddressFile } from "./utils";
@@ -19,13 +17,9 @@ async function main() {
     deployer
   );
 
-  const L2StandardERC20GatewayAddress = addressFile.get("L2StandardERC20Gateway.proxy");
   const L2ETHGatewayAddress = addressFile.get("L2ETHGateway.proxy");
-
-  const tx = await L2GatewayRouter.initialize(
-    L2ETHGatewayAddress,
-    L2StandardERC20GatewayAddress,
-  );
+  const L2StandardERC20GatewayAddress = addressFile.get("L2StandardERC20Gateway.proxy");
+  const tx = await L2GatewayRouter.initialize(L2ETHGatewayAddress, L2StandardERC20GatewayAddress);
   console.log("initialize L2GatewayRouter, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
