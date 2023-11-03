@@ -104,11 +104,7 @@ contract ScrollChainWithoutTwoStepCommit is OwnableUpgradeable, PausableUpgradea
         layer2ChainId = _chainId;
     }
 
-    function initialize(
-        address _messageQueue,
-        address _verifier,
-        uint256 _maxNumTxInChunk
-    ) public initializer {
+    function initialize(address _messageQueue, address _verifier, uint256 _maxNumTxInChunk) public initializer {
         OwnableUpgradeable.__Ownable_init();
 
         messageQueue = _messageQueue;

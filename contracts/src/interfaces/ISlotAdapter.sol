@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.16;
 
-import { IDeposit } from "./IDeposit.sol";
+import {IDeposit} from "./IDeposit.sol";
 
 import "../libraries/util/Structs.sol";
 
@@ -10,13 +10,12 @@ interface ISlotAdapter {
     /**
      * @notice Set slotId
      */
-     function setSlotId(uint256 _slotId) external;
+    function setSlotId(uint256 _slotId) external;
 
     /**
      * @notice Get slotId
      */
-     function getSlotId() external returns (uint256);
-
+    function getSlotId() external returns (uint256);
 
     /**
      * @notice Set the zkEvm contract
@@ -48,7 +47,12 @@ interface ISlotAdapter {
     /**
      * @notice distribute reward
      */
-    function distributeRewards(address _recipient, uint64 _initNumBatch, uint64 _finalNewBatch, IDeposit _iDeposit) external;
+    function distributeRewards(
+        address _recipient,
+        uint64 _initNumBatch,
+        uint64 _finalNewBatch,
+        IDeposit _iDeposit
+    ) external;
 
     /**
      * @notice Change slot manager

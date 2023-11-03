@@ -24,7 +24,8 @@ async function main() {
     const ContractImpl = await ethers.getContractFactory(contractName, deployer);
     let impl;
     if (contractName === "L1WETHGateway") {
-      impl = await ContractImpl.deploy(process.env.L1_WETH_ADDR, "0x5300000000000000000000000000000000000004");
+      const WETH = addressFile.get('WETH');
+      impl = await ContractImpl.deploy(WETH, "0x5300000000000000000000000000000000000004");
     } else if (contractName === "L2WETHGateway") {
       impl = await ContractImpl.deploy("0x5300000000000000000000000000000000000004", process.env.L1_WETH_ADDR);
     } else {

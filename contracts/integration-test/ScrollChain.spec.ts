@@ -9,7 +9,6 @@ describe("ScrollChainWithoutTwoStepCommit", async () => {
   let queue: L1MessageQueue;
   let chain: ScrollChainWithoutTwoStepCommit;
 
-
   beforeEach(async () => {
     const [deployer] = await ethers.getSigners();
 
