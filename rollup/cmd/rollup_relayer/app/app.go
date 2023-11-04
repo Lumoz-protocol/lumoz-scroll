@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"os"
 	"os/signal"
 	"time"
@@ -111,7 +112,7 @@ func action(ctx *cli.Context) error {
 
 	go utils.Loop(subCtx, 2*time.Second, l2relayer.ProcessPendingBatches)
 
-	go utils.Loop(subCtx, 2*time.Second, l2relayer.PreprocessCommittedBatches)
+	go l2relayer.PreprocessCommittedBatches(subCtx)
 	
 	go utils.Loop(subCtx, 15*time.Second, l2relayer.ProcessCommittedBatches)
 
