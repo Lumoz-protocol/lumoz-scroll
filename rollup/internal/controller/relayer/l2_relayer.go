@@ -442,144 +442,138 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		}
 	}
 
-	for {
-		time.Sleep(1 * time.Second)
-
-		// Get proof by batchIndex from db
-		fields := map[string]interface{}{
-			"index": batchIndex.Add(batchIndex, big.NewInt(1)),
-		}
-		orderByList := []string{"index ASC"}
-		limit := 1
-		batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
-		if err != nil {
-			log.Error("Failed to get batches from db", "err", err)
-			continue
-		}
-		if len(batches) != 1 {
-			log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
-			continue
-		}
-		if batches[0].ProvingStatus != int16(types.ProvingTaskFailed)  {
-			fmt.Printf("Unable to send proofhash, since proof generation failed")
-			batchIndex.Add(batchIndex, big.NewInt(1))
-			continue
-		}
-		if batches[0].ProvingStatus != int16(types.ProverProofValid)  {
-			fmt.Printf("Unable to send proofhash, since proof hasn't generated")
-			continue
-		}
-
-		// check if should send proofhash
-		isCommitProofHashAllowed, err := r.scrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: false}, batchIndex)
-		if err != nil {
-			log.Error("Failed to determinate isCommitProofHashAllowed", "err", err)
-			continue
-		}
-		if !isCommitProofHashAllowed {
-			log.Info("Commit proofhash not allowed", "err", err)
-			continue
-		}
-
-		// send proofhash
-		sha3 := solsha3.SoliditySHA3(batches[0].Proof)
-		senderAddress := privKey2Address(r.cfg.CommitSenderPrivateKey) 
-		pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
-			sha3,
-			senderAddress,
-		})
-		hash := crypto.Keccak256Hash(pack)
-		result, err := r.scrollChain.SubmitProofHash(&bind.TransactOpts{}, batchIndex, hash)
-		if err != nil {
-			log.Error("Fail to SubmitProofHash", "err", err)
-			continue
-		}
-		log.Info("SubmitProofHash, txn hash:", result.Hash())
-
-		batchIndex.Add(batchIndex, big.NewInt(1))
+	// Get proof by batchIndex from db
+	fields := map[string]interface{}{
+		"index": batchIndex.Add(batchIndex, big.NewInt(1)),
 	}
+	orderByList := []string{"index ASC"}
+	limit := 1
+	batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
+	if err != nil {
+		log.Error("Failed to get batches from db", "err", err)
+		return
+	}
+	if len(batches) != 1 {
+		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
+		return
+	}
+	if batches[0].ProvingStatus != int16(types.ProvingTaskFailed)  {
+		fmt.Printf("Unable to send proofhash, since proof generation failed")
+		batchIndex.Add(batchIndex, big.NewInt(1))
+		return
+	}
+	if batches[0].ProvingStatus != int16(types.ProverProofValid)  {
+		fmt.Printf("Unable to send proofhash, since proof hasn't generated")
+		return
+	}
+
+	// check if should submit proofhash
+	isCommitProofHashAllowed, err := r.scrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: false}, batchIndex)
+	if err != nil {
+		log.Error("Failed to determinate isCommitProofHashAllowed", "err", err)
+		return
+	}
+	if !isCommitProofHashAllowed {
+		log.Info("Commit proofhash not allowed", "err", err)
+		return
+	}
+
+	// send proofhash
+	sha3 := solsha3.SoliditySHA3(batches[0].Proof)
+	senderAddress := privKey2Address(r.cfg.CommitSenderPrivateKey) 
+	pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
+		sha3,
+		senderAddress,
+	})
+	hash := crypto.Keccak256Hash(pack)
+	result, err := r.scrollChain.SubmitProofHash(&bind.TransactOpts{}, batchIndex, hash)
+	if err != nil {
+		log.Error("Fail to SubmitProofHash", "err", err)
+		return
+	}
+	log.Info("SubmitProofHash, txn hash:", result.Hash())
+
+	batchIndex.Add(batchIndex, big.NewInt(1))
+	
 }
 
 // ProcessCommittedBatches submit proof to layer 1 rollup contract
 func (r *Layer2Relayer) ProcessCommittedBatches() {
-	for {
-		time.Sleep(1 * time.Second)
-
-		// fetch index to proof
-		batchIndex, err := r.scrollChain.GetBatchToProve(&bind.CallOpts{Pending: false})
-		if err != nil {
-			log.Error("Failed to fetch batchIndex to prove", "err", err)
-			continue
-		}
-		if batchIndex == big.NewInt(0) {
-			log.Info("Currently, no batch provable", "err", err)
-			continue
-		}
-
-		// send proof
-		fields := map[string]interface{}{
-			"index": batchIndex,
-		}
-		orderByList := []string{"index ASC"}
-		limit := 1
-		batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
-		if err != nil {
-			log.Error("Failed to fetch committed L2 batches", "err", err)
-			continue
-		}
-		if len(batches) != 1 {
-			log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
-			continue
-		}
-		batch := batches[0]
-		batchHeader := batch.BatchHeader
-		var prevStateRoot [32]byte
-		var postStateRoot [32]byte
-		var withdrawRoot [32]byte
-		if batch.Index > 0 {
-			var parentBatch *orm.Batch
-			parentBatch, err = r.batchOrm.GetBatchByIndex(r.ctx, batch.Index-1)
-			if err != nil {
-				log.Error("Failed to get batch", "index", batch.Index-1, "err", err)
-				return
-			}
-			copy(prevStateRoot[:], parentBatch.StateRoot)
-		}
-		copy(postStateRoot[:], batch.StateRoot)
-		copy(withdrawRoot[:], batch.WithdrawRoot)
-		aggrProof:= batch.Proof
-		var result *gethTypes.Transaction
-		if r.cfg.DummyVerifier {
-			result, err = r.scrollChain.FinalizeBatchWithProof(
-				&bind.TransactOpts{}, 
-				batchHeader, 
-				prevStateRoot, 
-				postStateRoot, 
-				withdrawRoot, 
-				[]byte{},
-			)
-		} else {
-			result, err = r.scrollChain.FinalizeBatchWithProof(
-				&bind.TransactOpts{}, 
-				batchHeader, 
-				prevStateRoot, 
-				postStateRoot, 
-				withdrawRoot, 
-				aggrProof,
-			)
-		}
-		if err != nil {
-			log.Error("Submit proof transation failed, err", err)
-		}
-		err = r.batchOrm.UpdateFinalizeTxHashAndRollupStatus(r.ctx, batch.Hash, result.Hash().String(), types.RollupFinalizing)
-		if err != nil {
-			log.Error("UpdateFinalizeTxHashAndRollupStatus failed",
-				"index", batch.Index, "batch hash", batch.Hash,
-				"tx hash", result.Hash().String(), "err", err)
-		}
-		txID := batch.Hash + "-finalize"
-		r.processingFinalization.Store(txID, batch.Hash)
+	// fetch index to proof
+	batchIndex, err := r.scrollChain.GetBatchToProve(&bind.CallOpts{Pending: false})
+	if err != nil {
+		log.Error("Failed to fetch batchIndex to prove", "err", err)
+		return
 	}
+	if batchIndex == big.NewInt(0) {
+		log.Info("Currently, no batch provable", "err", err)
+		return
+	}
+
+	// send proof
+	fields := map[string]interface{}{
+		"index": batchIndex,
+	}
+	orderByList := []string{"index ASC"}
+	limit := 1
+	batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
+	if err != nil {
+		log.Error("Failed to fetch committed L2 batches", "err", err)
+		return
+	}
+	if len(batches) != 1 {
+		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
+		return
+	}
+	batch := batches[0]
+	batchHeader := batch.BatchHeader
+	var prevStateRoot [32]byte
+	var postStateRoot [32]byte
+	var withdrawRoot [32]byte
+	if batch.Index > 0 {
+		var parentBatch *orm.Batch
+		parentBatch, err = r.batchOrm.GetBatchByIndex(r.ctx, batch.Index-1)
+		if err != nil {
+			log.Error("Failed to get batch", "index", batch.Index-1, "err", err)
+			return
+		}
+		copy(prevStateRoot[:], parentBatch.StateRoot)
+	}
+	copy(postStateRoot[:], batch.StateRoot)
+	copy(withdrawRoot[:], batch.WithdrawRoot)
+	aggrProof:= batch.Proof
+	var result *gethTypes.Transaction
+	if r.cfg.DummyVerifier {
+		result, err = r.scrollChain.FinalizeBatchWithProof(
+			&bind.TransactOpts{}, 
+			batchHeader, 
+			prevStateRoot, 
+			postStateRoot, 
+			withdrawRoot, 
+			[]byte{},
+		)
+	} else {
+		result, err = r.scrollChain.FinalizeBatchWithProof(
+			&bind.TransactOpts{}, 
+			batchHeader, 
+			prevStateRoot, 
+			postStateRoot, 
+			withdrawRoot, 
+			aggrProof,
+		)
+	}
+	if err != nil {
+		log.Error("Submit proof transation failed, err", err)
+	}
+	err = r.batchOrm.UpdateFinalizeTxHashAndRollupStatus(r.ctx, batch.Hash, result.Hash().String(), types.RollupFinalizing)
+	if err != nil {
+		log.Error("UpdateFinalizeTxHashAndRollupStatus failed",
+			"index", batch.Index, "batch hash", batch.Hash,
+			"tx hash", result.Hash().String(), "err", err)
+	}
+	txID := batch.Hash + "-finalize"
+	r.processingFinalization.Store(txID, batch.Hash)
+	
 }
 
 // batchStatusResponse the response schema
