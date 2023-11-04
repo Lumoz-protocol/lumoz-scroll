@@ -1,10 +1,10 @@
 package relayer
 
-import "context"
+// import "context"
 
-type SendProofServiceServer interface {
-	start(ctx context.Context) error
-	stop()
-	pushProofHash(msg proofHash) error
-	handleHistoryProofTxs(ctx context.Context)
-}
+// type SendProofServiceServer interface {
+// 	start(ctx context.Context) error
+// 	stop()
+// 	pushProofHash(msg proofHash) error
+// 	handleHistoryProofTxs(ctx context.Context)
+// }

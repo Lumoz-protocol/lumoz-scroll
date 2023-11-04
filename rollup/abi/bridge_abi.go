@@ -42,7 +42,7 @@ var (
 )
 
 func init() {
-	ScrollChainABI, _ = ScrollChainMetaData.GetAbi()
+	ScrollChainABI, _ = ScrollChainTwoStepCommitMetaData.GetAbi()
 	L1MessageQueueABI, _ = L1MessageQueueMetaData.GetAbi()
 	L2GasPriceOracleABI, _ = L2GasPriceOracleMetaData.GetAbi()
 
@@ -67,6 +67,1192 @@ func init() {
 // ScrollChainMetaData contains all meta data concerning the ScrollChain contract.
 var ScrollChainMetaData = &bind.MetaData{
 	ABI: "[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"_chainId\",\"type\":\"uint64\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"batchIndex\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"batchHash\",\"type\":\"bytes32\"}],\"name\":\"CommitBatch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"batchIndex\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"batchHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"stateRoot\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"withdrawRoot\",\"type\":\"bytes32\"}],\"name\":\"FinalizeBatch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"batchIndex\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"batchHash\",\"type\":\"bytes32\"}],\"name\":\"RevertBatch\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldMaxNumL2TxInChunk\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newMaxNumL2TxInChunk\",\"type\":\"uint256\"}],\"name\":\"UpdateMaxNumL2TxInChunk\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"status\",\"type\":\"bool\"}],\"name\":\"UpdateProver\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"status\",\"type\":\"bool\"}],\"name\":\"UpdateSequencer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldVerifier\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newVerifier\",\"type\":\"address\"}],\"name\":\"UpdateVerifier\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"_version\",\"type\":\"uint8\"},{\"internalType\":\"bytes\",\"name\":\"_parentBatchHeader\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"_chunks\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes\",\"name\":\"_skippedL1MessageBitmap\",\"type\":\"bytes\"}],\"name\":\"commitBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"committedBatches\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_batchHeader\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"_prevStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_postStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_withdrawRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_aggrProof\",\"type\":\"bytes\"}],\"name\":\"finalizeBatchWithProof\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"finalizedStateRoots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_batchHeader\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"_stateRoot\",\"type\":\"bytes32\"}],\"name\":\"importGenesisBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_messageQueue\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_verifier\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_maxNumL2TxInChunk\",\"type\":\"uint256\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_batchIndex\",\"type\":\"uint256\"}],\"name\":\"isBatchFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isProver\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isSequencer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastFinalizedBatchIndex\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"layer2ChainId\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxNumL2TxInChunk\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"messageQueue\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_batchHeader\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_count\",\"type\":\"uint256\"}],\"name\":\"revertBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_maxNumL2TxInChunk\",\"type\":\"uint256\"}],\"name\":\"updateMaxNumL2TxInChunk\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_account\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_status\",\"type\":\"bool\"}],\"name\":\"updateProver\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_account\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_status\",\"type\":\"bool\"}],\"name\":\"updateSequencer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newVerifier\",\"type\":\"address\"}],\"name\":\"updateVerifier\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"verifier\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"withdrawRoots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+}
+
+var ScrollChainTwoStepCommitMetaData = &bind.MetaData{
+	ABI: `[
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint64",
+			  "name": "_chainId",
+			  "type": "uint64"
+			}
+		  ],
+		  "stateMutability": "nonpayable",
+		  "type": "constructor"
+		},
+		{
+		  "inputs": [],
+		  "name": "CommittedProof",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "CommittedProofHash",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "CommittedTimeout",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "ErrCommitProof",
+		  "type": "error"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "bytes32",
+			  "name": "",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "ErrorBatchHash",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "InsufficientPledge",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "OnlyDeposit",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "SlotAdapterEmpty",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "SubmitProofEarly",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "SubmitProofTooLate",
+		  "type": "error"
+		},
+		{
+		  "inputs": [],
+		  "name": "ZeroAddress",
+		  "type": "error"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "uint256",
+			  "name": "batchIndex",
+			  "type": "uint256"
+			},
+			{
+			  "indexed": true,
+			  "internalType": "bytes32",
+			  "name": "batchHash",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "CommitBatch",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "uint256",
+			  "name": "batchIndex",
+			  "type": "uint256"
+			},
+			{
+			  "indexed": true,
+			  "internalType": "bytes32",
+			  "name": "batchHash",
+			  "type": "bytes32"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "bytes32",
+			  "name": "stateRoot",
+			  "type": "bytes32"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "bytes32",
+			  "name": "withdrawRoot",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "FinalizeBatch",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "uint8",
+			  "name": "version",
+			  "type": "uint8"
+			}
+		  ],
+		  "name": "Initialized",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "address",
+			  "name": "previousOwner",
+			  "type": "address"
+			},
+			{
+			  "indexed": true,
+			  "internalType": "address",
+			  "name": "newOwner",
+			  "type": "address"
+			}
+		  ],
+		  "name": "OwnershipTransferred",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "address",
+			  "name": "account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "Paused",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "uint256",
+			  "name": "batchIndex",
+			  "type": "uint256"
+			},
+			{
+			  "indexed": true,
+			  "internalType": "bytes32",
+			  "name": "batchHash",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "RevertBatch",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "uint8",
+			  "name": "newProofCommitEpoch",
+			  "type": "uint8"
+			}
+		  ],
+		  "name": "SetProofCommitEpoch",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "uint8",
+			  "name": "newProofHashCommitEpoch",
+			  "type": "uint8"
+			}
+		  ],
+		  "name": "SetProofHashCommitEpoch",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "address",
+			  "name": "_prover",
+			  "type": "address"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "uint256",
+			  "name": "batchIndex",
+			  "type": "uint256"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "bytes32",
+			  "name": "_proofHash",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "SubmitProofHash",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "address",
+			  "name": "account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "Unpaused",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": false,
+			  "internalType": "uint256",
+			  "name": "oldMaxNumTxInChunk",
+			  "type": "uint256"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "uint256",
+			  "name": "newMaxNumTxInChunk",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "UpdateMaxNumTxInChunk",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "address",
+			  "name": "account",
+			  "type": "address"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "bool",
+			  "name": "status",
+			  "type": "bool"
+			}
+		  ],
+		  "name": "UpdateProver",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "address",
+			  "name": "account",
+			  "type": "address"
+			},
+			{
+			  "indexed": false,
+			  "internalType": "bool",
+			  "name": "status",
+			  "type": "bool"
+			}
+		  ],
+		  "name": "UpdateSequencer",
+		  "type": "event"
+		},
+		{
+		  "anonymous": false,
+		  "inputs": [
+			{
+			  "indexed": true,
+			  "internalType": "address",
+			  "name": "oldVerifier",
+			  "type": "address"
+			},
+			{
+			  "indexed": true,
+			  "internalType": "address",
+			  "name": "newVerifier",
+			  "type": "address"
+			}
+		  ],
+		  "name": "UpdateVerifier",
+		  "type": "event"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "addProver",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "addSequencer",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "blockCommitBatches",
+		  "outputs": [
+			{
+			  "internalType": "bool",
+			  "name": "",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint8",
+			  "name": "_version",
+			  "type": "uint8"
+			},
+			{
+			  "internalType": "bytes",
+			  "name": "_parentBatchHeader",
+			  "type": "bytes"
+			},
+			{
+			  "internalType": "bytes[]",
+			  "name": "_chunks",
+			  "type": "bytes[]"
+			},
+			{
+			  "internalType": "bytes",
+			  "name": "_skippedL1MessageBitmap",
+			  "type": "bytes"
+			}
+		  ],
+		  "name": "commitBatch",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "committedBatchInfo",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "blockNumber",
+			  "type": "uint256"
+			},
+			{
+			  "internalType": "bool",
+			  "name": "proofSubmitted",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "committedBatches",
+		  "outputs": [
+			{
+			  "internalType": "bytes32",
+			  "name": "",
+			  "type": "bytes32"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "bytes",
+			  "name": "_batchHeader",
+			  "type": "bytes"
+			},
+			{
+			  "internalType": "bytes32",
+			  "name": "_prevStateRoot",
+			  "type": "bytes32"
+			},
+			{
+			  "internalType": "bytes32",
+			  "name": "_postStateRoot",
+			  "type": "bytes32"
+			},
+			{
+			  "internalType": "bytes32",
+			  "name": "_withdrawRoot",
+			  "type": "bytes32"
+			},
+			{
+			  "internalType": "bytes",
+			  "name": "_aggrProof",
+			  "type": "bytes"
+			}
+		  ],
+		  "name": "finalizeBatchWithProof",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "finalizedStateRoots",
+		  "outputs": [
+			{
+			  "internalType": "bytes32",
+			  "name": "",
+			  "type": "bytes32"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "ideDeposit",
+		  "outputs": [
+			{
+			  "internalType": "contract IDeposit",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "bytes",
+			  "name": "_batchHeader",
+			  "type": "bytes"
+			},
+			{
+			  "internalType": "bytes32",
+			  "name": "_stateRoot",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "importGenesisBatch",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "incorrectProofHashPunishAmount",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_messageQueue",
+			  "type": "address"
+			},
+			{
+			  "internalType": "address",
+			  "name": "_verifier",
+			  "type": "address"
+			},
+			{
+			  "internalType": "uint256",
+			  "name": "_maxNumTxInChunk",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "initialize",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "isAllLiquidated",
+		  "outputs": [
+			{
+			  "internalType": "bool",
+			  "name": "",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "_batchIndex",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "isBatchFinalized",
+		  "outputs": [
+			{
+			  "internalType": "bool",
+			  "name": "",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "name": "isProver",
+		  "outputs": [
+			{
+			  "internalType": "bool",
+			  "name": "",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "name": "isSequencer",
+		  "outputs": [
+			{
+			  "internalType": "bool",
+			  "name": "",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "lastFinalizedBatchIndex",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "layer2ChainId",
+		  "outputs": [
+			{
+			  "internalType": "uint64",
+			  "name": "",
+			  "type": "uint64"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "maxNumTxInChunk",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "messageQueue",
+		  "outputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "minDeposit",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "noProofPunishAmount",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "owner",
+		  "outputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "paused",
+		  "outputs": [
+			{
+			  "internalType": "bool",
+			  "name": "",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "proofCommitEpoch",
+		  "outputs": [
+			{
+			  "internalType": "uint8",
+			  "name": "",
+			  "type": "uint8"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "proofHashCommitEpoch",
+		  "outputs": [
+			{
+			  "internalType": "uint8",
+			  "name": "",
+			  "type": "uint8"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "name": "proofNum",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			},
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "name": "proverCommitProofHash",
+		  "outputs": [
+			{
+			  "internalType": "bytes32",
+			  "name": "proofHash",
+			  "type": "bytes32"
+			},
+			{
+			  "internalType": "uint256",
+			  "name": "blockNumber",
+			  "type": "uint256"
+			},
+			{
+			  "internalType": "bool",
+			  "name": "proof",
+			  "type": "bool"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "name": "proverLastLiquidated",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			},
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "proverLiquidation",
+		  "outputs": [
+			{
+			  "internalType": "address",
+			  "name": "prover",
+			  "type": "address"
+			},
+			{
+			  "internalType": "bool",
+			  "name": "isSubmittedProofHash",
+			  "type": "bool"
+			},
+			{
+			  "internalType": "uint256",
+			  "name": "submitHashBlockNumber",
+			  "type": "uint256"
+			},
+			{
+			  "internalType": "bool",
+			  "name": "isSubmittedProof",
+			  "type": "bool"
+			},
+			{
+			  "internalType": "uint256",
+			  "name": "submitProofBlockNumber",
+			  "type": "uint256"
+			},
+			{
+			  "internalType": "bool",
+			  "name": "isLiquidated",
+			  "type": "bool"
+			},
+			{
+			  "internalType": "uint64",
+			  "name": "finalNewBatch",
+			  "type": "uint64"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			},
+			{
+			  "internalType": "bytes32",
+			  "name": "",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "proverPosition",
+		  "outputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "removeProver",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "removeSequencer",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "renounceOwnership",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "bytes",
+			  "name": "_batchHeader",
+			  "type": "bytes"
+			},
+			{
+			  "internalType": "uint256",
+			  "name": "_count",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "revertBatch",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "contract IDeposit",
+			  "name": "_ideDeposit",
+			  "type": "address"
+			}
+		  ],
+		  "name": "setDeposit",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "_amount",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "setIncorrectProofPunishAmount",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "_amount",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "setMinDeposit",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "_amount",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "setNoProofPunishAmount",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "bool",
+			  "name": "_status",
+			  "type": "bool"
+			}
+		  ],
+		  "name": "setPause",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint8",
+			  "name": "_newCommitEpoch",
+			  "type": "uint8"
+			}
+		  ],
+		  "name": "setProofCommitEpoch",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint8",
+			  "name": "_newCommitEpoch",
+			  "type": "uint8"
+			}
+		  ],
+		  "name": "setProofHashCommitEpoch",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "contract ISlotAdapter",
+			  "name": "_slotAdapter",
+			  "type": "address"
+			}
+		  ],
+		  "name": "setSlotAdapter",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_account",
+			  "type": "address"
+			}
+		  ],
+		  "name": "settle",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "slotAdapter",
+		  "outputs": [
+			{
+			  "internalType": "contract ISlotAdapter",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "batchIndex",
+			  "type": "uint256"
+			},
+			{
+			  "internalType": "bytes32",
+			  "name": "_proofHash",
+			  "type": "bytes32"
+			}
+		  ],
+		  "name": "submitProofHash",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "newOwner",
+			  "type": "address"
+			}
+		  ],
+		  "name": "transferOwnership",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "_maxNumTxInChunk",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "updateMaxNumTxInChunk",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "address",
+			  "name": "_newVerifier",
+			  "type": "address"
+			}
+		  ],
+		  "name": "updateVerifier",
+		  "outputs": [],
+		  "stateMutability": "nonpayable",
+		  "type": "function"
+		},
+		{
+		  "inputs": [],
+		  "name": "verifier",
+		  "outputs": [
+			{
+			  "internalType": "address",
+			  "name": "",
+			  "type": "address"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		},
+		{
+		  "inputs": [
+			{
+			  "internalType": "uint256",
+			  "name": "",
+			  "type": "uint256"
+			}
+		  ],
+		  "name": "withdrawRoots",
+		  "outputs": [
+			{
+			  "internalType": "bytes32",
+			  "name": "",
+			  "type": "bytes32"
+			}
+		  ],
+		  "stateMutability": "view",
+		  "type": "function"
+		}
+	  ]`,
 }
 
 // L1ScrollMessengerMetaData contains all meta data concerning the L1ScrollMessenger contract.
