@@ -1356,6 +1356,7 @@ error SubmitProofTooLate()
 
 
 *Thrown when prover submitted proof too late*
+<<<<<<< HEAD
 
 
 ### UnCommittedProofHash
@@ -1367,6 +1368,8 @@ error UnCommittedProofHash()
 
 
 *Thrown when prover hasn&#39;t committed proof hash, but want to commit proof*
+=======
+>>>>>>> lumoz/develop
 
 
 ### ZeroAddress
@@ -1378,6 +1381,7 @@ error ZeroAddress()
 
 
 *Thrown when the address is ZeroAddress*
+<<<<<<< HEAD
 
 
 ### submitProofHashNotAllowed
@@ -1386,6 +1390,8 @@ error ZeroAddress()
 error submitProofHashNotAllowed()
 ```
 
+=======
+>>>>>>> lumoz/develop
 
 
 *Thrown when submit proof hash not allowed*

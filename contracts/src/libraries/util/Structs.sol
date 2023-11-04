@@ -41,6 +41,12 @@ struct Slot {
     uint256 issuedReward;
 }
 
-enum RewardType {PROVER, SEQUENCER}
+enum RewardType {
+    PROVER,
+    SEQUENCER
+}
 
-enum RewardDistributionType { Automatic, Manual }
+enum RewardDistributionType {
+    Automatic,
+    Manual
+}

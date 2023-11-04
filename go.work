@@ -8,4 +8,5 @@ use (
 	./prover
 	./rollup
 	./tests/integration-test
+	./l2geth
 )

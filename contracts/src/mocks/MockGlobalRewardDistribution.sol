@@ -2,9 +2,6 @@
 
 pragma solidity 0.8.16;
 
-contract MockGlobalRewardDistribution{
-
-    function initialize(address _opsideSlots) external virtual {
-
-    }
+contract MockGlobalRewardDistribution {
+    function initialize(address _opsideSlots) external virtual {}
 }

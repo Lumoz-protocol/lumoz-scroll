@@ -4,8 +4,12 @@ pragma solidity 0.8.16;
 
 interface IDeposit {
     function deposit(uint256 amount) external payable;
+
     function withdraw(uint256 amount) external;
-    function depositOf(address account) external view returns(uint256);
+
+    function depositOf(address account) external view returns (uint256);
+
     function punish(address account, uint256 amount) external;
-    function totalDeposits() external view returns(uint256);
+
+    function totalDeposits() external view returns (uint256);
 }
