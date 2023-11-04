@@ -692,6 +692,11 @@ func (r *Layer2Relayer) handleConfirmation(confirmation *sender.Confirmation) {
 		r.processingCommitment.Delete(confirmation.ID)
 	}
 
+	// check whether it is SubmitProofHash transaction
+	if batchHash, ok := r.processingSubmitProofHash.Load(confirmation.ID); ok {
+		// TODO
+	}
+
 	// check whether it is proof finalization transaction
 	if batchHash, ok := r.processingFinalization.Load(confirmation.ID); ok {
 		transactionType = "ProofFinalization"
