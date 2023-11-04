@@ -702,46 +702,6 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
      * Internal Functions *
      **********************/
 
-    function isCommitProofHashAllowed(uint256 batchIndex) internal view {
-        ProofHashData memory proofHashData = proverCommitProofHash[batchIndex][msg.sender];
-        if (lastFinalizedBatchIndex >= batchIndex || proofHashData.proof) {
-            revert CommittedProof();
-        }
-        if (
-            proofHashData.proofHash != bytes32(0) &&
-            (proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) > block.number
-        ) {
-            revert CommittedProofHash();
-        }
-    }
-
-    function isCommitProofAllowed(uint256 batchIndex) internal view {
-        CommitInfo memory BatchInfo = committedBatchInfo[batchIndex];
-        if (BatchInfo.blockNumber + proofHashCommitEpoch > block.number) {
-            revert SubmitProofEarly();
-        }
-
-        ProofHashData memory _proofHashData = proverCommitProofHash[batchIndex][msg.sender];
-        if (_proofHashData.blockNumber != BatchInfo.blockNumber) {
-            revert ErrCommitProof();
-        }
-
-        if (
-            !BatchInfo.proofSubmitted &&
-            (_proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) < block.number
-        ) {
-            revert SubmitProofTooLate();
-        }
-
-        if (_proofHashData.proofHash == bytes32(0)) {
-            revert CommittedProofHash();
-        }
-
-        if (_proofHashData.proof == true) {
-            revert CommittedProof();
-        }
-    }
-
     /// @dev Internal function to load batch header from calldata to memory.
     /// @param _batchHeader The batch header in calldata.
     /// @return memPtr The start memory offset of loaded batch header.
