@@ -63,23 +63,23 @@ async function main() {
       code: L2MessageQueueInfo.bytecode,
       storage: L2MessageQueueInfo.storage,
     },
-    "0x5300000000000000000000000000000000000001": {
+    "5300000000000000000000000000000000000001": {
       code: L1BlockContainerInfo.bytecode,
       storage: L1BlockContainerInfo.storage,
     },
-    "0x5300000000000000000000000000000000000002": {
+    "5300000000000000000000000000000000000002": {
       code: L1GasPriceOracleInfo.bytecode,
       storage: L1GasPriceOracleInfo.storage,
     },
-    "0x5300000000000000000000000000000000000003": {
+    "5300000000000000000000000000000000000003": {
       code: WhitelistInfo.bytecode,
       storage: WhitelistInfo.storage,
     },
-    "0x5300000000000000000000000000000000000004": {
+    "5300000000000000000000000000000000000004": {
       code: WETHInfo.bytecode,
       storage: WETHInfo.storage,
     },
-    "0x5300000000000000000000000000000000000005": {
+    "5300000000000000000000000000000000000005": {
       code: L2TxFeeVaultInfo.bytecode,
       storage: L2TxFeeVaultInfo.storage,
     },
