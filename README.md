@@ -41,6 +41,12 @@ docker pull postgres
 make dev_docker
 ```
 
+## l2geth
+
+```
+sudo docker build -t l2geth -f Dockerfile .
+```
+
 ## Testing Rollup & Coordinator
 
 ### For Non-Apple Silicon (M1/M2) Macs
