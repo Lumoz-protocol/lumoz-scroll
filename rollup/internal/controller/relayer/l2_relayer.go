@@ -454,7 +454,7 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
 		return
 	}
-	if batches[0].ProvingStatus != int16(types.ProvingTaskFailed) {
+	if batches[0].ProvingStatus == int16(types.ProvingTaskFailed) {
 		fmt.Printf("Unable to send proofhash, since proof generation failed")
 		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 		return
