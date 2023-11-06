@@ -438,66 +438,69 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 	if err != nil {
 		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
 	}
-
-	// Get proof by batchIndex from db
-	fields := map[string]interface{}{
-		"index": preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1)),
-	}
-	orderByList := []string{"index ASC"}
-	limit := 1
-	batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
-	if err != nil {
-		log.Error("Failed to get batches from db", "err", err)
-		return
-	}
-	if len(batches) != 1 {
-		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
-		return
-	}
-	if batches[0].ProvingStatus == int16(types.ProvingTaskFailed) {
-		fmt.Printf("Unable to send proofhash, since proof generation failed")
-		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
-		return
-	}
-	if batches[0].ProvingStatus != int16(types.ProverProofValid) {
-		fmt.Printf("Unable to send proofhash, since proof hasn't generated")
-		return
-	}
-
-	// check if should submit proofhash
-	err = r.finalizeFetcher.ScrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, preProcessBatchIndex)
-	if err != nil {
-		log.Error("Commit proofhash not allowed", "err", err)
-		return
-	}
-
-	// send proofhash
-	sha3 := solsha3.SoliditySHA3(batches[0].Proof)
-	pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
-		sha3,
-		r.finalizeSender.SenderAddress(),
-	})
-	hash := crypto.Keccak256Hash(pack)
-	data, err := r.l1RollupABI.Pack(
-		"submitProofHash",
-		preProcessBatchIndex,
-		hash,
-	)
-	if err != nil {
-		log.Error("Pack submitProofHash failed", "err", err)
-		return
-	}
-	txID := batches[0].Hash + "-submit"
-	txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
-	submitTxHash := &txHash
-	if err != nil {
-		log.Error("Fail to SubmitProofHash", "err", err)
-		return
-	}
-	log.Info("SubmitProofHash, txn hash:", submitTxHash.String())
-	r.processingSubmitProofHash.Store(txID, submitTxHash.String())
-
 	preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
+
+	for {
+		// Get proof by batchIndex from db
+		fields := map[string]interface{}{
+			"index": preProcessBatchIndex,
+		}
+		orderByList := []string{"index ASC"}
+		limit := 1
+		batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
+		if err != nil {
+			log.Error("Failed to get batches from db", "err", err)
+			return
+		}
+		if len(batches) != 1 {
+			log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
+			return
+		}
+		if batches[0].ProvingStatus == int16(types.ProvingTaskFailed) {
+			fmt.Printf("Unable to send proofhash, since proof generation failed")
+			preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
+			return
+		}
+		if batches[0].ProvingStatus != int16(types.ProverProofValid) {
+			fmt.Printf("Unable to send proofhash, since proof hasn't generated")
+			return
+		}
+
+		// check if should submit proofhash
+		err = r.finalizeFetcher.ScrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, preProcessBatchIndex)
+		if err != nil {
+			log.Error("Commit proofhash not allowed", "err", err)
+			return
+		}
+
+		// send proofhash
+		sha3 := solsha3.SoliditySHA3(batches[0].Proof)
+		pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
+			sha3,
+			r.finalizeSender.SenderAddress(),
+		})
+		hash := crypto.Keccak256Hash(pack)
+		data, err := r.l1RollupABI.Pack(
+			"submitProofHash",
+			preProcessBatchIndex,
+			hash,
+		)
+		if err != nil {
+			log.Error("Pack submitProofHash failed", "err", err)
+			return
+		}
+		txID := batches[0].Hash + "-submit"
+		txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
+		submitTxHash := &txHash
+		if err != nil {
+			log.Error("Fail to SubmitProofHash", "err", err)
+			return
+		}
+		log.Info("SubmitProofHash, txn hash:", submitTxHash.String())
+		r.processingSubmitProofHash.Store(txID, submitTxHash.String())
+
+		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
+	}
 }
 
 // ProcessCommittedBatches submit proof to layer 1 rollup contract
