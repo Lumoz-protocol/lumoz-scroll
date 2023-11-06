@@ -23,6 +23,7 @@ COPY --from=zkp-builder /app/target/release/libzkp.so /usr/local/lib/
 COPY --from=zkp-builder /app/target/release/libzktrie.so /usr/local/lib/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 RUN cd /scroll/rollup && make rollup_bins
+RUN cd ../database && make db_cli
 
 # Pull Geth into a second stage deploy alpine container
 FROM ubuntu:20.04
@@ -33,9 +34,11 @@ RUN apt-get -qq update \
 COPY --from=builder /scroll/rollup/build/bin/event_watcher /usr/local/bin/
 COPY --from=builder /scroll/rollup/build/bin/gas_oracle /usr/local/bin/
 COPY --from=builder /scroll/rollup/build/bin/rollup_relayer /usr/local/bin/
+COPY --from=builder /scroll/database/build/bin/rollup_relayer /usr/local/bin/
 COPY --from=zkp-builder /app/target/release/libzkp.so /usr/local/lib/
 COPY --from=zkp-builder /app/target/release/libzktrie.so /usr/local/lib/
 COPY run_rollup_relayer.sh /usr/local/bin
+RUN chmod 755 /usr/local/bin/run_rollup_relayer.sh
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 ENTRYPOINT []
