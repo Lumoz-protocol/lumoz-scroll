@@ -22,7 +22,7 @@ ADD . /scroll
 COPY --from=zkp-builder /app/target/release/libzkp.so /usr/local/lib/
 COPY --from=zkp-builder /app/target/release/libzktrie.so /usr/local/lib/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
-RUN cd /scroll/l2geth && make rollup_bins
+RUN cd /scroll/rollup && make rollup_bins
 
 # Pull Geth into a second stage deploy alpine container
 FROM ubuntu:20.04
@@ -35,7 +35,7 @@ COPY --from=builder /scroll/rollup/build/bin/gas_oracle /usr/local/bin/
 COPY --from=builder /scroll/rollup/build/bin/rollup_relayer /usr/local/bin/
 COPY --from=zkp-builder /app/target/release/libzkp.so /usr/local/lib/
 COPY --from=zkp-builder /app/target/release/libzktrie.so /usr/local/lib/
-COPY run_rollup_relayer.sh /usr/bin
+COPY run_rollup_relayer.sh /usr/local/bin
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 ENTRYPOINT []
