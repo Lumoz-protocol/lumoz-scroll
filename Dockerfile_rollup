@@ -23,7 +23,7 @@ COPY --from=zkp-builder /app/target/release/libzkp.so /usr/local/lib/
 COPY --from=zkp-builder /app/target/release/libzktrie.so /usr/local/lib/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 RUN cd /scroll/rollup && make rollup_bins
-RUN cd ../database && make db_cli
+RUN cd /scroll/database && make db_cli
 
 # Pull Geth into a second stage deploy alpine container
 FROM ubuntu:20.04
