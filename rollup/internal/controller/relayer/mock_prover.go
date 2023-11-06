@@ -20,7 +20,7 @@ func (r *Layer2Relayer) MockProver() {
 		return
 	}
 	if len(batches) != 1 {
-		log.Warn("Unexpeted result for GetBlockBatches", "number of batches", len(batches))
+		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
 		return
 	}
 
