@@ -351,9 +351,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
     }
 
     function submitProofHash(uint256 batchIndex, bytes32 _proofHash) external {
-        if (isCommitProofHashAllowed(batchIndex)) {
-            revert submitProofHashNotAllowed();
-        }
+        isCommitProofHashAllowed(batchIndex);
 
         uint256 _finalNewBatchNumber = committedBatchInfo[batchIndex].blockNumber;
         if (
@@ -440,8 +438,17 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
 
         // make sure committing proof complies with the two step commitment rule
-        if (isCommitProofAllowed(_batchIndex)) {
-            revert submitProofNotAllowed();
+        uint8 errCode = isCommitProofAllowed(_batchIndex);
+        if (errCode == 1) {
+            revert SubmitProofEarly();
+        } else if (errCode == 2) {
+            revert ErrCommitProof();
+        } else if (errCode == 3) {
+            revert SubmitProofTooLate();
+        } else if (errCode == 4) {
+            revert CommittedProofHash();
+        } else if (errCode == 5) {
+            revert CommittedProof();
         }
 
         // verify previous state root.
@@ -626,10 +633,10 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
      * Public View Functions *
      *************************/
 
-    function isCommitProofHashAllowed(uint256 batchIndex) public view returns (bool) {
+    function isCommitProofHashAllowed(uint256 batchIndex) public view {
         ProofHashData memory proofHashData = proverCommitProofHash[batchIndex][msg.sender];
         if (lastFinalizedBatchIndex >= batchIndex || proofHashData.proof) {
-            return false;
+            revert CommittedProof();
         }
 
         if (
@@ -642,57 +649,62 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
             // ((proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) <= block.number &&
             // committedBatchInfo[batchIndex].proofSubmitted)
         ) {
-            return false;
+            revert CommittedProofHash();
         }
 
         if (ideDeposit.depositOf(msg.sender) < minDeposit) {
-            return false;
+            revert InsufficientPledge();
         }
 
         if (committedBatches[batchIndex] == bytes32(0)) {
-            return false;
+            revert ErrorBatchHash(committedBatches[batchIndex]);
         }
-        return true;
     }
 
-    function isCommitProofAllowed(uint256 batchIndex) public view returns (bool) {
+    function isCommitProofAllowed(uint256 batchIndex) public view returns (uint8) {
         CommitInfo memory BatchInfo = committedBatchInfo[batchIndex];
         if (BatchInfo.blockNumber + proofHashCommitEpoch > block.number) {
-            return false;
+            // SubmitProofEarly error code 1
+            return 1;
         }
 
         ProofHashData memory _proofHashData = proverCommitProofHash[batchIndex][msg.sender];
         if (_proofHashData.blockNumber != BatchInfo.blockNumber) {
-            return false;
+            // ErrCommitProof error code 2
+            return 2;
         }
 
         if (
             !BatchInfo.proofSubmitted &&
             (_proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) < block.number
         ) {
-            return false;
+            // SubmitProofTooLate error code 3
+            return 3;
         }
 
         if (_proofHashData.proofHash == bytes32(0)) {
-            return false;
+            // CommittedProofHash error code 4
+            return 4;
         }
 
         if (_proofHashData.proof == true) {
-            return false;
+            // CommittedProof error code 5
+            return 5;
         }
-        return true;
+        // No error, error code 0
+        return 0;
     }
 
     // For Provers to fetch provable batch
     function getBatchToProve() public view returns (uint256) {
         uint256 i = lastFinalizedBatchIndex + 1;
         while (true) {
-            if (isCommitProofAllowed(i)) {
+            if (isCommitProofAllowed(i) == 0) {
                 return i;
             }
             // in case out of gas limit
             if (lastFinalizedBatchIndex + 1 - i > 100) {
-                break;
+                return 0;
             }
             i--;
         }

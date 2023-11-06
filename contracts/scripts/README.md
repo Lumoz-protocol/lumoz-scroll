@@ -4,6 +4,7 @@
 
 The scripts should run as below sequence:
 complete .env file from .env.example
+source .env
 
 # deploy contracts in layer 1
 
@@ -26,7 +27,6 @@ env CONTRACT_NAME=EnforcedTxGateway npx hardhat run --network $layer1 scripts/de
 
 # deploy contracts in layer 2, note: l2_messenger is predeployed
 
-env CONTRACT_NAME=L1GasPriceOracle npx hardhat run --network $layer2 scripts/deploy_predeploys.ts
 env CONTRACT_NAME=L2MessageQueue npx hardhat run --network $layer2 scripts/deploy_predeploys.ts
 env CONTRACT_NAME=L2TxFeeVault npx hardhat run --network $layer2 scripts/deploy_predeploys.ts
 env CONTRACT_NAME=L1BlockContainer npx hardhat run --network $layer2 scripts/deploy_predeploys.ts

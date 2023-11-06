@@ -1297,7 +1297,6 @@ error SubmitProofTooLate()
 *Thrown when prover submitted proof too late*
 
 
-<<<<<<< HEAD
 ### UnCommittedProofHash
 
 ```solidity
@@ -1309,8 +1308,6 @@ error UnCommittedProofHash()
 *Thrown when prover hasn&#39;t committed proof hash, but want to commit proof*
 
 
-=======
->>>>>>> lumoz/develop
 ### ZeroAddress
 
 ```solidity
@@ -1322,7 +1319,6 @@ error ZeroAddress()
 *Thrown when the address is ZeroAddress*
 
 
-<<<<<<< HEAD
 ### submitProofHashNotAllowed
 
 ```solidity
@@ -1345,6 +1341,4 @@ error submitProofNotAllowed()
 *Thrown when submit proof not allowed*
 
 
-=======
->>>>>>> lumoz/develop
 

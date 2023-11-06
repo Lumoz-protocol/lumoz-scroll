@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math/big"
@@ -23,8 +22,8 @@ import (
 
 	bridgeAbi "scroll-tech/rollup/abi"
 	"scroll-tech/rollup/internal/config"
+	"scroll-tech/rollup/internal/controller/fetcher"
 	"scroll-tech/rollup/internal/controller/sender"
-	"scroll-tech/rollup/internal/controller/sender/smartcontracts"
 	"scroll-tech/rollup/internal/orm"
 
 	solsha3 "github.com/miguelmota/go-solidity-sha3"
@@ -49,7 +48,7 @@ type Layer2Relayer struct {
 
 	cfg *config.RelayerConfig
 
-	scrollChain *smartcontracts.ScrollChain
+	finalizeFetcher *fetcher.Fetcher
 
 	commitSender   *sender.Sender
 	finalizeSender *sender.Sender
@@ -82,13 +81,9 @@ type Layer2Relayer struct {
 
 // NewLayer2Relayer will return a new instance of Layer2RelayerClient
 func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.DB, cfg *config.RelayerConfig, initGenesis bool, reg prometheus.Registerer) (*Layer2Relayer, error) {
-	ethClient, err := ethclient.Dial(cfg.SenderConfig.Endpoint)
+	finalizeFetcher, err := fetcher.NewFetcher(ctx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("fail to new ethClient when new layer2 relayer, err: %w", err)
-	}
-	scrollchain, err := smartcontracts.NewScrollChain(cfg.RollupContractAddress, ethClient)
-	if err != nil {
-		return nil, fmt.Errorf("fail to new smartcontracts scrollchain when new layer2 relayer, err: %w", err)
+		return nil, fmt.Errorf("new finalize fetcher failed, err: %w", err)
 	}
 
 	commitSender, err := sender.NewSender(ctx, cfg.SenderConfig, cfg.CommitSenderPrivateKey, "l2_relayer", "commit_sender", reg)
@@ -128,7 +123,7 @@ func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.
 
 		l2Client: l2Client,
 
-		scrollChain: scrollchain,
+		finalizeFetcher: finalizeFetcher,
 
 		commitSender:   commitSender,
 		finalizeSender: finalizeSender,
@@ -437,99 +432,84 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 }
 
 // ProcessCommittedBatches submit proof hash to layer1 rollup contract
-func (r *Layer2Relayer) PreprocessCommittedBatches(ctx context.Context) {
-	// Fetch current batch to proof from blockchain
-	var batchIndex *big.Int
-	for {
-		var err error
-		batchIndex, err = r.scrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: false})
-		if err != nil {
-			log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
-		} else {
-			break
-		}
+func (r *Layer2Relayer) PreprocessCommittedBatches() {
+	// fetch last finalized batch index
+	preProcessBatchIndex, err := r.finalizeFetcher.ScrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: false, From: *r.finalizeSender.SenderAddress()})
+	if err != nil {
+		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
 	}
 
-	for {
-		time.Sleep(1 * time.Second)
-
-		// Get proof by batchIndex from db
-		fields := map[string]interface{}{
-			"index": batchIndex.Add(batchIndex, big.NewInt(1)),
-		}
-		orderByList := []string{"index ASC"}
-		limit := 1
-		batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
-		if err != nil {
-			log.Error("Failed to get batches from db", "err", err)
-			return
-		}
-		if len(batches) != 1 {
-			log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
-			return
-		}
-		if batches[0].ProvingStatus != int16(types.ProvingTaskFailed) {
-			fmt.Printf("Unable to send proofhash, since proof generation failed")
-			batchIndex.Add(batchIndex, big.NewInt(1))
-			return
-		}
-		if batches[0].ProvingStatus != int16(types.ProverProofValid) {
-			fmt.Printf("Unable to send proofhash, since proof hasn't generated")
-			return
-		}
-
-		// check if should submit proofhash
-		isCommitProofHashAllowed, err := r.scrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: false}, batchIndex)
-		if err != nil {
-			log.Error("Failed to determinate isCommitProofHashAllowed", "err", err)
-			return
-		}
-		if !isCommitProofHashAllowed {
-			log.Info("Commit proofhash not allowed", "err", err)
-			return
-		}
-
-		// send proofhash
-		sha3 := solsha3.SoliditySHA3(batches[0].Proof)
-		senderAddress := privKey2Address(r.cfg.CommitSenderPrivateKey)
-		pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
-			sha3,
-			senderAddress,
-		})
-		hash := crypto.Keccak256Hash(pack)
-		data, err := r.l1RollupABI.Pack(
-			"submitProofHash",
-			batchIndex,
-			hash,
-		)
-		if err != nil {
-			log.Error("Pack submitProofHash failed", "err", err)
-			return
-		}
-		txID := batches[0].Hash + "-submit"
-		txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
-		submitTxHash := &txHash
-		if err != nil {
-			log.Error("Fail to SubmitProofHash", "err", err)
-			return
-		}
-		log.Info("SubmitProofHash, txn hash:", submitTxHash.String())
-		r.processingSubmitProofHash.Store(txID, submitTxHash.String())
-
-		batchIndex.Add(batchIndex, big.NewInt(1))
+	// Get proof by batchIndex from db
+	fields := map[string]interface{}{
+		"index": preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1)),
 	}
+	orderByList := []string{"index ASC"}
+	limit := 1
+	batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
+	if err != nil {
+		log.Error("Failed to get batches from db", "err", err)
+		return
+	}
+	if len(batches) != 1 {
+		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
+		return
+	}
+	if batches[0].ProvingStatus != int16(types.ProvingTaskFailed) {
+		fmt.Printf("Unable to send proofhash, since proof generation failed")
+		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
+		return
+	}
+	if batches[0].ProvingStatus != int16(types.ProverProofValid) {
+		fmt.Printf("Unable to send proofhash, since proof hasn't generated")
+		return
+	}
+
+	// check if should submit proofhash
+	err = r.finalizeFetcher.ScrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, preProcessBatchIndex)
+	if err != nil {
+		log.Error("Commit proofhash not allowed", "err", err)
+		return
+	}
+
+	// send proofhash
+	sha3 := solsha3.SoliditySHA3(batches[0].Proof)
+	pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
+		sha3,
+		r.finalizeSender.SenderAddress(),
+	})
+	hash := crypto.Keccak256Hash(pack)
+	data, err := r.l1RollupABI.Pack(
+		"submitProofHash",
+		preProcessBatchIndex,
+		hash,
+	)
+	if err != nil {
+		log.Error("Pack submitProofHash failed", "err", err)
+		return
+	}
+	txID := batches[0].Hash + "-submit"
+	txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
+	submitTxHash := &txHash
+	if err != nil {
+		log.Error("Fail to SubmitProofHash", "err", err)
+		return
+	}
+	log.Info("SubmitProofHash, txn hash:", submitTxHash.String())
+	r.processingSubmitProofHash.Store(txID, submitTxHash.String())
+
+	preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 }
 
 // ProcessCommittedBatches submit proof to layer 1 rollup contract
 func (r *Layer2Relayer) ProcessCommittedBatches() {
 	// fetch index to proof
-	batchIndex, err := r.scrollChain.GetBatchToProve(&bind.CallOpts{Pending: false})
+	batchIndex, err := r.finalizeFetcher.ScrollChain.GetBatchToProve(&bind.CallOpts{Pending: true})
 	if err != nil {
 		log.Error("Failed to fetch batchIndex to prove", "err", err)
 		return
 	}
 	if batchIndex == big.NewInt(0) {
-		log.Info("Currently, no batch provable", "err", err)
+		log.Info("Currently, no batch is provable", "err", err)
 		return
 	}
 
@@ -559,7 +539,7 @@ func (r *Layer2Relayer) ProcessCommittedBatches() {
 		}
 		prevStateRoot = parentBatch.StateRoot
 	}
-	var	data []byte
+	var data []byte
 	if r.cfg.DummyVerifier {
 		data, err = r.l1RollupABI.Pack(
 			"finalizeBatchWithProof",
@@ -633,7 +613,6 @@ func (r *Layer2Relayer) ProcessCommittedBatches() {
 			"tx hash", finalizeTxHash.String(), "err", err)
 	}
 	r.processingFinalization.Store(txID, batch.Hash)
-
 }
 
 // batchStatusResponse the response schema
@@ -693,9 +672,10 @@ func (r *Layer2Relayer) handleConfirmation(confirmation *sender.Confirmation) {
 	}
 
 	// check whether it is SubmitProofHash transaction
-	if batchHash, ok := r.processingSubmitProofHash.Load(confirmation.ID); ok {
-		// TODO
-	}
+	// TODO
+	// if batchHash, ok := r.processingSubmitProofHash.Load(confirmation.ID); ok {
+
+	// }
 
 	// check whether it is proof finalization transaction
 	if batchHash, ok := r.processingFinalization.Load(confirmation.ID); ok {
@@ -750,15 +730,4 @@ func (r *Layer2Relayer) handleConfirmLoop(ctx context.Context) {
 			}
 		}
 	}
-}
-
-func privKey2Address(privkey *ecdsa.PrivateKey) common.Address {
-	publicKey := privkey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Error("Fail to convert private key to address")
-	}
-
-	return crypto.PubkeyToAddress(*publicKeyECDSA)
-
 }

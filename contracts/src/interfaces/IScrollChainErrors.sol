@@ -62,14 +62,4 @@ interface IScrollChainErrors {
      * @dev Thrown when prover hasn't committed proof hash, but want to commit proof
      */
     error UnCommittedProofHash();
-
-    /**
-     * @dev Thrown when submit proof hash not allowed
-     */
-    error submitProofHashNotAllowed();
-
-    /**
-     * @dev Thrown when submit proof not allowed
-     */
-    error submitProofNotAllowed();
 }

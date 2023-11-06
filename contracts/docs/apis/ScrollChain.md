@@ -298,7 +298,7 @@ Return whether the batch is finalized by batch index.
 ### isCommitProofAllowed
 
 ```solidity
-function isCommitProofAllowed(uint256 batchIndex) external view returns (bool)
+function isCommitProofAllowed(uint256 batchIndex) external view returns (uint8)
 ```
 
 
@@ -315,12 +315,12 @@ function isCommitProofAllowed(uint256 batchIndex) external view returns (bool)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | undefined |
+| _0 | uint8 | undefined |
 
 ### isCommitProofHashAllowed
 
 ```solidity
-function isCommitProofHashAllowed(uint256 batchIndex) external view returns (bool)
+function isCommitProofHashAllowed(uint256 batchIndex) external view
 ```
 
 
@@ -332,12 +332,6 @@ function isCommitProofHashAllowed(uint256 batchIndex) external view returns (boo
 | Name | Type | Description |
 |---|---|---|
 | batchIndex | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
 
 ### isProver
 
@@ -1356,7 +1350,6 @@ error SubmitProofTooLate()
 
 
 *Thrown when prover submitted proof too late*
-<<<<<<< HEAD
 
 
 ### UnCommittedProofHash
@@ -1368,8 +1361,6 @@ error UnCommittedProofHash()
 
 
 *Thrown when prover hasn&#39;t committed proof hash, but want to commit proof*
-=======
->>>>>>> lumoz/develop
 
 
 ### ZeroAddress
@@ -1381,7 +1372,6 @@ error ZeroAddress()
 
 
 *Thrown when the address is ZeroAddress*
-<<<<<<< HEAD
 
 
 ### submitProofHashNotAllowed
@@ -1390,8 +1380,6 @@ error ZeroAddress()
 error submitProofHashNotAllowed()
 ```
 
-=======
->>>>>>> lumoz/develop
 
 
 *Thrown when submit proof hash not allowed*
