@@ -57,9 +57,4 @@ interface IScrollChainErrors {
      * @dev Thrown when prover submitted proof too late
      */
     error SubmitProofTooLate();
-
-    /**
-     * @dev Thrown when prover hasn't committed proof hash, but want to commit proof
-     */
-    error UnCommittedProofHash();
 }
