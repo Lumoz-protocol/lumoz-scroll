@@ -149,6 +149,15 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
      *        proofHash              proof start         proof end   */
     uint8 public proofCommitEpoch;
 
+    enum Error {
+        NoError,
+        SubmitProofEarly,
+        ErrCommitProof,
+        SubmitProofTooLate,
+        CommittedProofHash,
+        CommittedProof
+    }
+
     /**********************
      * Function Modifiers *
      **********************/
@@ -438,16 +447,16 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
 
         // make sure committing proof complies with the two step commitment rule
-        uint8 errCode = isCommitProofAllowed(_batchIndex);
-        if (errCode == 1) {
+        uint8 _error = isCommitProofAllowed(_batchIndex);
+        if (_error == Error.SubmitProofEarly) {
             revert SubmitProofEarly();
-        } else if (errCode == 2) {
+        } else if (_error == Error.ErrCommitProof) {
             revert ErrCommitProof();
-        } else if (errCode == 3) {
+        } else if (_error == Error.SubmitProofTooLate) {
             revert SubmitProofTooLate();
-        } else if (errCode == 4) {
+        } else if (_error == Error.CommittedProofHash) {
             revert CommittedProofHash();
-        } else if (errCode == 5) {
+        } else if (_error == Error.CommittedProof) {
             revert CommittedProof();
         }
 
@@ -664,42 +673,36 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
     function isCommitProofAllowed(uint256 batchIndex) public view returns (uint8) {
         CommitInfo memory BatchInfo = committedBatchInfo[batchIndex];
         if (BatchInfo.blockNumber + proofHashCommitEpoch > block.number) {
-            // SubmitProofEarly error code 1
-            return 1;
+            return Error.SubmitProofEarly;
         }
 
         ProofHashData memory _proofHashData = proverCommitProofHash[batchIndex][msg.sender];
         if (_proofHashData.blockNumber != BatchInfo.blockNumber) {
-            // ErrCommitProof error code 2
-            return 2;
+            return Error.ErrCommitProof;
         }
 
         if (
             !BatchInfo.proofSubmitted &&
             (_proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) < block.number
         ) {
-            // SubmitProofTooLate error code 3
-            return 3;
+            return Error.SubmitProofTooLate;
         }
 
         if (_proofHashData.proofHash == bytes32(0)) {
-            // CommittedProofHash error code 4
-            return 4;
+            return Error.CommittedProofHash;
         }
 
         if (_proofHashData.proof == true) {
-            // CommittedProof error code 5
-            return 5;
+            return Error.CommittedProof;
         }
-        // No error, error code 0
-        return 0;
+        return Error.NoError;
     }
 
     // For Provers to fetch provable batch
     function getBatchToProve() public view returns (uint256) {
         uint256 i = lastFinalizedBatchIndex + 1;
         while (true) {
-            if (isCommitProofAllowed(i) == 0) {
+            if (isCommitProofAllowed(i) == Error.NoError) {
                 return i;
             }
             // in case out of gas limit
