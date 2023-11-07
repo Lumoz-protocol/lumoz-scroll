@@ -85,7 +85,7 @@
   },
   "db_config": {
     "driver_name": "postgres",
-    "dsn": "postgres://admin:123456@61.10.9.22:10050/test?sslmode=disable",
+    "dsn": "postgres://admin:123456@61.10.9.22:10049/test?sslmode=disable",
     "maxOpenNum": 200,
     "maxIdleNum": 20
   }

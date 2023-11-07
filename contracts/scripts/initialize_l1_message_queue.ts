@@ -29,7 +29,7 @@ async function main() {
     L2_GAS_PRICE_ORACLE_PROXY_ADDR,
     MAX_L1_MESSAGE_GAS_LIMIT
   );
-  console.log("initialize L2GasPriceOracle, hash:", tx.hash);
+  console.log("initialize L1MessageQueue, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }

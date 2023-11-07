@@ -295,28 +295,6 @@ Return whether the batch is finalized by batch index.
 |---|---|---|
 | _0 | bool | undefined |
 
-### isCommitProofAllowed
-
-```solidity
-function isCommitProofAllowed(uint256 batchIndex) external view returns (uint8)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| batchIndex | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint8 | undefined |
-
 ### isCommitProofHashAllowed
 
 ```solidity
@@ -1352,17 +1330,6 @@ error SubmitProofTooLate()
 *Thrown when prover submitted proof too late*
 
 
-### UnCommittedProofHash
-
-```solidity
-error UnCommittedProofHash()
-```
-
-
-
-*Thrown when prover hasn&#39;t committed proof hash, but want to commit proof*
-
-
 ### ZeroAddress
 
 ```solidity
@@ -1372,28 +1339,6 @@ error ZeroAddress()
 
 
 *Thrown when the address is ZeroAddress*
-
-
-### submitProofHashNotAllowed
-
-```solidity
-error submitProofHashNotAllowed()
-```
-
-
-
-*Thrown when submit proof hash not allowed*
-
-
-### submitProofNotAllowed
-
-```solidity
-error submitProofNotAllowed()
-```
-
-
-
-*Thrown when submit proof not allowed*
 
 
 

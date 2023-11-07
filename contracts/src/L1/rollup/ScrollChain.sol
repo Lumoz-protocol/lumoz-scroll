@@ -447,7 +447,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
 
         // make sure committing proof complies with the two step commitment rule
-        uint8 _error = isCommitProofAllowed(_batchIndex);
+        Error _error = isCommitProofAllowed(_batchIndex);
         if (_error == Error.SubmitProofEarly) {
             revert SubmitProofEarly();
         } else if (_error == Error.ErrCommitProof) {
@@ -670,7 +670,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         }
     }
 
-    function isCommitProofAllowed(uint256 batchIndex) public view returns (uint8) {
+    function isCommitProofAllowed(uint256 batchIndex) internal view returns (Error) {
         CommitInfo memory BatchInfo = committedBatchInfo[batchIndex];
         if (BatchInfo.blockNumber + proofHashCommitEpoch > block.number) {
             return Error.SubmitProofEarly;

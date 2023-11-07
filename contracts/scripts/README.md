@@ -7,7 +7,7 @@ The scripts should run as below sequence:
 ```bash
 
 # generate alloc(storage for pre contract) from l2getg
-npx hardhat run scripts/generate_precontract_storage.ts
+npx hardhat run scripts/generate_precontract_storage.js
 
 export layer1=l1geth # change to actual network name
 export layer2=l2geth # change to actual network name
@@ -31,30 +31,27 @@ env CONTRACT_NAME=L2GasPriceOracle npx hardhat run --network $layer1 scripts/dep
 env CONTRACT_NAME=EnforcedTxGateway npx hardhat run --network $layer1 scripts/deploy_proxy_contract.ts
 
 # deploy contracts in layer 2, note: l2_messenger is predeployed
-npx hardhat --network $layer2 run scripts/deploy_whitelist.ts
 npx hardhat --network $layer2 run scripts/deploy_proxy_admin.ts
 npx hardhat --network $layer2 run scripts/deploy_l2_messenger.ts
 npx hardhat --network $layer2 run scripts/deploy_l2_token_factory.ts
 env CONTRACT_NAME=L2GatewayRouter npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
 env CONTRACT_NAME=L2StandardERC20Gateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
+env CONTRACT_NAME=L2ETHGateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
 env CONTRACT_NAME=L2CustomERC20Gateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
 env CONTRACT_NAME=L2ERC721Gateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
 env CONTRACT_NAME=L2ERC1155Gateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
-env CONTRACT_NAME=L2ETHGateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
 env CONTRACT_NAME=L2WETHGateway npx hardhat run --network $layer2 scripts/deploy_proxy_contract.ts
 
 
 # initalize contracts in layer 1, should set proper bash env variables first
 npx hardhat --network $layer1 run scripts/initialize_scroll_chain.ts
-npx hardhat --network $layer1 run scripts/initializeL2GasPriceOracle.ts
-npx hardhat --network $layer1 run scripts/initializeL1MessageQueue.ts
-npx hardhat --network $layer1 run scripts/initializeL1Messager.ts
-npx hardhat --network $layer1 run scripts/initializeL1ETHGateway.ts
-npx hardhat --network $layer1 run ./scripts/initialize_l1_gateway_router.ts
+npx hardhat --network $layer1 run scripts/initialize_l2_gasprice_oracle.ts
+npx hardhat --network $layer1 run scripts/initialize_l1_message_queue.ts
+npx hardhat --network $layer1 run scripts/initialize_l1_messenger.ts
+npx hardhat --network $layer1 run scripts/initialize_l1_eth_gateway.ts
+npx hardhat --network $layer1 run scripts/initialize_l1_gateway_router.ts
 
 <!-- npx hardhat --network $layer1 run scripts/initialize_l1_erc20_gateway.ts
-npx hardhat --network $layer1 run scripts/initialize_l1_gateway_router.ts
-npx hardhat --network $layer1 run scripts/initialize_l1_messenger.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_custom_erc20_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_erc1155_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_erc721_gateway.ts -->
@@ -66,7 +63,6 @@ npx hardhat --network $layer2 run scripts/initialize_l2_eth_gateway.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_gateway_router.ts
 
 <!-- npx hardhat --network $layer2 run scripts/initialize_l2_erc20_gateway.ts
-npx hardhat --network $layer2 run scripts/initialize_l2_gateway_router.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_custom_erc20_gateway.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_erc1155_gateway.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_erc721_gateway.ts

@@ -1,0 +1,6 @@
+{
+    "dsn": "postgres://admin:passwort@/host:port/test?sslmode=disable",
+    "driver_name": "postgres",
+    "maxOpenNum": 200,
+    "maxIdleNum": 20
+  }

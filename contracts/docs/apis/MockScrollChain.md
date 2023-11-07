@@ -1297,17 +1297,6 @@ error SubmitProofTooLate()
 *Thrown when prover submitted proof too late*
 
 
-### UnCommittedProofHash
-
-```solidity
-error UnCommittedProofHash()
-```
-
-
-
-*Thrown when prover hasn&#39;t committed proof hash, but want to commit proof*
-
-
 ### ZeroAddress
 
 ```solidity
@@ -1317,28 +1306,6 @@ error ZeroAddress()
 
 
 *Thrown when the address is ZeroAddress*
-
-
-### submitProofHashNotAllowed
-
-```solidity
-error submitProofHashNotAllowed()
-```
-
-
-
-*Thrown when submit proof hash not allowed*
-
-
-### submitProofNotAllowed
-
-```solidity
-error submitProofNotAllowed()
-```
-
-
-
-*Thrown when submit proof not allowed*
 
 
 
