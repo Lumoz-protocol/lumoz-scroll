@@ -35,6 +35,14 @@ async function main() {
   console.log("initialize L1GasPriceOracle, hash:", tx3.hash);
   const receipt3 = await tx3.wait();
   console.log(`✅ Done, gas used: ${receipt3.gasUsed}`);
+
+  // l2Whitelist updateWhitelistStatus
+  const L2WhiteList = await ethers.getContractAt("Whitelist", L2_WHITELIST_ADDR, deployer);
+  const GasOracleSender = process.env.GAS_PRICE_ORACLE_SENDER || "0x0000000000000000000000000000000000000000";
+  const tx4 = await L2WhiteList.updateWhitelistStatus([deployer.address, GasOracleSender], true);
+  console.log("L2WhiteList updateWhitelistStatus, hash:", tx4.hash);
+  const receipt4 = await tx4.wait();
+  console.log(`✅ Done, gas used: ${receipt4.gasUsed}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

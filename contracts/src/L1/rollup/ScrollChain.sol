@@ -155,7 +155,8 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         ErrCommitProof,
         SubmitProofTooLate,
         CommittedProofHash,
-        CommittedProof
+        CommittedProof,
+        SubmitFutureProof
     }
 
     /**********************
@@ -458,6 +459,8 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
             revert CommittedProofHash();
         } else if (_error == Error.CommittedProof) {
             revert CommittedProof();
+        } else if (_error == Error.SubmitFutureProof) {
+            revert SubmitFutureProof();
         }
 
         // verify previous state root.
@@ -651,12 +654,6 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         if (
             (proofHashData.proofHash != bytes32(0) &&
                 (proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) > block.number)
-            /**
-             *  Add below if there are not a lot of provers, to prevent frequent stop
-             **/
-            // ||
-            // ((proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) <= block.number &&
-            // committedBatchInfo[batchIndex].proofSubmitted)
         ) {
             revert CommittedProofHash();
         }
@@ -695,21 +692,63 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         if (_proofHashData.proof == true) {
             return Error.CommittedProof;
         }
+
+        if (batchIndex > lastFinalizedBatchIndex + 1) {
+            return Error.SubmitFutureProof;
+        }
+        return Error.NoError;
+    }
+
+    function _isCommitProofAllowed(uint256 batchIndex) public view returns (Error) {
+        CommitInfo memory BatchInfo = committedBatchInfo[batchIndex];
+        if (BatchInfo.blockNumber + proofHashCommitEpoch > block.number) {
+            return Error.SubmitProofEarly;
+        }
+
+        ProofHashData memory _proofHashData = proverCommitProofHash[batchIndex][msg.sender];
+        if (_proofHashData.blockNumber != BatchInfo.blockNumber) {
+            return Error.ErrCommitProof;
+        }
+
+        if (
+            !BatchInfo.proofSubmitted &&
+            (_proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) < block.number
+        ) {
+            return Error.SubmitProofTooLate;
+        }
+
+        if (_proofHashData.proofHash == bytes32(0)) {
+            return Error.CommittedProofHash;
+        }
+
+        if (_proofHashData.proof == true) {
+            return Error.CommittedProof;
+        }
+
+        if (batchIndex > lastFinalizedBatchIndex + 1) {
+            return Error.SubmitFutureProof;
+        }
         return Error.NoError;
     }
 
     // For Provers to fetch provable batch
-    function getBatchToProve() public view returns (uint256) {
-        uint256 i = lastFinalizedBatchIndex + 1;
+    function getBatchToProve(uint256 _from, uint256 _step) public view returns (uint256) {
+        uint256 to;
+        if (_from > _step) {
+            to = _from - _step;
+        } else {
+            to = 0;
+        }
+
         while (true) {
-            if (isCommitProofAllowed(i) == Error.NoError) {
-                return i;
+            if (isCommitProofAllowed(_from) == Error.NoError) {
+                return _from;
             }
-            // in case out of gas limit
-            if (lastFinalizedBatchIndex + 1 - i > 100) {
+            // in case exceed range
+            if (_from <= to) {
                 return 0;
             }
-            i--;
+            _from--;
         }
     }
 

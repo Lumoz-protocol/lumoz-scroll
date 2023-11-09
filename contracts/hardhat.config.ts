@@ -16,10 +16,12 @@ import "@openzeppelin/hardhat-upgrades";
 dotenv.config();
 
 // default values here to avoid failures when running hardhat
-const SCROLL_L1_RPC = process.env.SCROLL_L1_RPC || "https://rpc.ankr.com/eth_goerli";
+const SCROLL_L1_RPC = process.env.SCROLL_L1_RPC || "http://61.10.9.22:11012";
 const SCROLL_L2_RPC = process.env.SCROLL_L2_RPC || "http://61.10.9.22:10051/";
 
 const L1_DEPLOYER_PRIVATE_KEY = process.env.L1_DEPLOYER_PRIVATE_KEY || "1".repeat(64);
+const L1_SEQUENCER_PRIVATE_KEY = process.env.L1_SEQUENCER_PRIVATE_KEY || "1".repeat(64);
+const L1_PROVER_PRIVATE_KEY = process.env.L1_PROVER_PRIVATE_KEY || "1".repeat(64);
 const L2_DEPLOYER_PRIVATE_KEY = process.env.L2_DEPLOYER_PRIVATE_KEY || "1".repeat(64);
 
 const SOLC_DEFAULT = "0.8.16";
@@ -65,7 +67,7 @@ const config: HardhatUserConfig = {
       url: SCROLL_L1_RPC,
       gasPrice: 1500000000,
       gasMultiplier: 1.1,
-      accounts: [L1_DEPLOYER_PRIVATE_KEY],
+      accounts: [L1_DEPLOYER_PRIVATE_KEY, L1_SEQUENCER_PRIVATE_KEY, L1_PROVER_PRIVATE_KEY],
     },
     l2geth: {
       url: SCROLL_L2_RPC,

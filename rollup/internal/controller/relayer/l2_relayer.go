@@ -161,12 +161,12 @@ func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.
 }
 
 func (r *Layer2Relayer) initializeGenesis() error {
-	// if count, err := r.batchOrm.GetBatchCount(r.ctx); err != nil {
-	// 	return fmt.Errorf("failed to get batch count: %v", err)
-	// } else if count > 0 {
-	// 	log.Info("genesis already imported", "batch count", count)
-	// 	return nil
-	// }
+	if count, err := r.batchOrm.GetBatchCount(r.ctx); err != nil {
+		return fmt.Errorf("failed to get batch count: %v", err)
+	} else if count > 0 {
+		log.Info("genesis already imported", "batch count", count)
+		return nil
+	}
 
 	genesis, err := r.l2Client.HeaderByNumber(r.ctx, big.NewInt(0))
 	if err != nil {
@@ -221,7 +221,8 @@ func (r *Layer2Relayer) initializeGenesis() error {
 
 		// commit genesis batch on L1
 		// note: we do this inside the DB transaction so that we can revert all DB changes if this step fails
-		return r.commitGenesisBatch(batch.Hash, batch.BatchHeader, common.HexToHash(batch.StateRoot))
+		// return r.commitGenesisBatch(batch.Hash, batch.BatchHeader, common.HexToHash(batch.StateRoot))
+		return nil
 	})
 
 	if err != nil {
@@ -461,8 +462,8 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 			preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 			return
 		}
-		if batches[0].ProvingStatus != int16(types.ProverProofValid) {
-			fmt.Printf("Unable to send proofhash, since proof hasn't generated")
+		if batches[0].ProvingStatus != int16(types.ProvingTaskVerified) {
+			fmt.Println("Unable to send proofhash, since proof hasn't generated, batchIndex:", preProcessBatchIndex)
 			return
 		}
 
@@ -505,14 +506,23 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 
 // ProcessCommittedBatches submit proof to layer 1 rollup contract
 func (r *Layer2Relayer) ProcessCommittedBatches() {
-	// fetch index to proof
-	batchIndex, err := r.finalizeFetcher.ScrollChain.GetBatchToProve(&bind.CallOpts{Pending: true})
+	// fetch last finalized batch index
+	ProcessBatchIndex, err := r.finalizeFetcher.ScrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: false, From: *r.finalizeSender.SenderAddress()})
+	if err != nil {
+		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
+	}
+	ProcessBatchIndex.Add(ProcessBatchIndex, big.NewInt(1))
+
+	// fetch batch index to proof
+	step := big.NewInt(20)
+	batchIndex, err := r.finalizeFetcher.ScrollChain.GetBatchToProve(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, ProcessBatchIndex, step)
 	if err != nil {
 		log.Error("Failed to fetch batchIndex to prove", "err", err)
 		return
 	}
-	if batchIndex == big.NewInt(0) {
-		log.Info("Currently, no batch is provable", "err", err)
+
+	if batchIndex.Cmp(big.NewInt(0)) == 0 {
+		log.Info("Currently, no batch is provable")
 		return
 	}
 

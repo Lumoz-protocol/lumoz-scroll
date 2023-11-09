@@ -1275,6 +1275,17 @@ error SlotAdapterEmpty()
 *Thrown when the SlotAdapter address is ZeroAddress*
 
 
+### SubmitFutureProof
+
+```solidity
+error SubmitFutureProof()
+```
+
+
+
+*Thrown when prover submitted proof for a future batch index*
+
+
 ### SubmitProofEarly
 
 ```solidity

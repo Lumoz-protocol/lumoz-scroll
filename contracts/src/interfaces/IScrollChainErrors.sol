@@ -57,4 +57,9 @@ interface IScrollChainErrors {
      * @dev Thrown when prover submitted proof too late
      */
     error SubmitProofTooLate();
+
+    /**
+     * @dev Thrown when prover submitted proof for a future batch index
+     */
+    error SubmitFutureProof();
 }

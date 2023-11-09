@@ -22,17 +22,29 @@ async function main() {
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 
-  const SEQUENCER_ADDRESS = process.env.SEQUENCER_ADDRESS || "0x0000000000000000000000000000000000000000";
-  const tx2 = await ScrollChain.addSequencer(SEQUENCER_ADDRESS);
+  const sequencerAddress = process.env.SEQUENCER_ADDRESS || "0x0000000000000000000000000000000000000000";
+  const tx2 = await ScrollChain.addSequencer(sequencerAddress);
   console.log("initialize ScrollChain addSequencer, hash:", tx2.hash);
   const receipt2 = await tx2.wait();
   console.log(`✅ Done, gas used: ${receipt2.gasUsed}`);
 
-  const PROVER_ADDRESS = process.env.PROVER_ADDRESS || "0x0000000000000000000000000000000000000000";
-  const tx3 = await ScrollChain.addProver(PROVER_ADDRESS);
+  const proverAddress = process.env.PROVER_ADDRESS || "0x0000000000000000000000000000000000000000";
+  const tx3 = await ScrollChain.addProver(proverAddress);
   console.log("initialize ScrollChain addProver, hash:", tx3.hash);
   const receipt3 = await tx3.wait();
   console.log(`✅ Done, gas used: ${receipt3.gasUsed}`);
+
+  const proofHashCommitEpoch = process.env.PROOf_HASH_COMMIT_EPOCH || 32;
+  const tx4 = await ScrollChain.setProofHashCommitEpoch(proofHashCommitEpoch);
+  console.log("initialize ScrollChain setProofHashCommitEpoch, hash:", tx4.hash);
+  const receipt4 = await tx4.wait();
+  console.log(`✅ Done, gas used: ${receipt4.gasUsed}`);
+
+  const proofCommitEpoch = process.env.PROOf_COMMIT_EPOCH || 20;
+  const tx5 = await ScrollChain.setProofCommitEpoch(proofCommitEpoch);
+  console.log("initialize ScrollChain setProofHashCommitEpoch, hash:", tx5.hash);
+  const receipt5 = await tx5.wait();
+  console.log(`✅ Done, gas used: ${receipt5.gasUsed}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -27,7 +27,7 @@
   },
   "ScrollChain": {
     "verifier": "0x09B29E8a76B2Bc9e14A4D229E08413477E8D708e",
-    "implementation": "0xC28d19d0AE2b0cA489821Fc93452164E9f30D04F",
+    "implementation": "0x5c98161C25BbE76Daf707B834E24270f8d1f180D",
     "proxy": "0x675bc507475CEfC5DdF07F96De72851da751c178",
     "multiple_verifier": "0xF1eeaEbA343ECd807A831B2CeD78a9cd807FbD98"
   },

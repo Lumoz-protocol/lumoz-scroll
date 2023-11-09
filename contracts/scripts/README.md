@@ -50,6 +50,7 @@ npx hardhat --network $layer1 run scripts/initialize_l1_message_queue.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_messenger.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_eth_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_gateway_router.ts
+npx hardhat --network $layer1 run scripts/initialize_l1_whitelist.ts
 
 <!-- npx hardhat --network $layer1 run scripts/initialize_l1_erc20_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_custom_erc20_gateway.ts
