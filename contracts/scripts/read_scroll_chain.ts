@@ -10,23 +10,22 @@ async function main() {
   const addressFile = selectAddressFile(hre.network.name);
 
   const signers = await ethers.getSigners();
-  const prover = signers[2];
+  const prover = signers[3];
 
   const ScrollChain = await ethers.getContractAt("ScrollChain", addressFile.get("ScrollChain.proxy"), prover);
 
   // check if commit proof hash for a batch is allowed
+  const batchIndex = 1;
   try {
-    const batchIndex = 1;
-    const isCommitProofHashAllowed = await ScrollChain.isCommitProofHashAllowed(batchIndex);
-    console.log("isCommitProofHashAllowed batchIndex:", batchIndex, "result:", isCommitProofHashAllowed);
+    await ScrollChain.isCommitProofHashAllowed(batchIndex);
+    console.log("batchIndex:", batchIndex, "commit proof hash allowed");
   } catch (e) {
-    console.log(e);
+    console.log("batchIndex", batchIndex, "commit proof hash not allowed");
   }
 
   // fetch provable batch index
-  const fromIndex = 10;
-  const toIndex = 0;
-  const batchToProve = await ScrollChain.getBatchToProve(fromIndex, toIndex);
+  const step = 20;
+  const batchToProve = await ScrollChain.getBatchToProve(step);
   console.log("batchToProve batchIndex:", batchToProve);
 
   // fetch ProofHashCommitEpoch
@@ -40,6 +39,29 @@ async function main() {
   // fetch ProofCommitEpoch
   const proofCommitEpoch = await ScrollChain.proofCommitEpoch();
   console.log("proofCommitEpoch:", proofCommitEpoch);
+
+  // fetch IDEposit address
+  const ideDeposit = await ScrollChain.ideDeposit();
+  console.log("ideDeposit:", ideDeposit);
+
+  // fetch slotAdapter address
+  const slotAdapter = await ScrollChain.slotAdapter();
+  console.log("slotAdapter:", slotAdapter);
+
+  // fetch slotAdapter address
+  const proverAddress = prover.address;
+  const isProver = await ScrollChain.isProver(proverAddress);
+  console.log("isProver:", isProver);
+
+  // fetch slotAdapter address
+  const proverCommitProofHashBatchIndex = "0x3e";
+  const proverCommitProofHash = await ScrollChain.proverCommitProofHash(proverCommitProofHashBatchIndex, proverAddress);
+  console.log("proverCommitProofHash:", proverCommitProofHash.blockNumber.toString());
+
+  // fetch slotAdapter address
+  const finalizedStateRootsBatchIndex = "0x3d";
+  const finalizedStateRoots = await ScrollChain.finalizedStateRoots(finalizedStateRootsBatchIndex);
+  console.log("finalizedStateRoots:", finalizedStateRoots);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

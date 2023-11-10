@@ -95,27 +95,35 @@ func action(ctx *cli.Context) error {
 	l2watcher := watcher.NewL2WatcherClient(subCtx, l2client, cfg.L2Config.Confirmations, cfg.L2Config.L2MessengerAddress,
 		cfg.L2Config.L2MessageQueueAddress, cfg.L2Config.WithdrawTrieRootSlot, db, registry)
 
-	// Watcher loop to fetch missing blocks
-	go utils.LoopWithContext(subCtx, 2*time.Second, func(ctx context.Context) {
-		number, loopErr := butils.GetLatestConfirmedBlockNumber(ctx, l2client, cfg.L2Config.Confirmations)
-		if loopErr != nil {
-			log.Error("failed to get block number", "err", loopErr)
-			return
-		}
-		l2watcher.TryFetchRunningMissingBlocks(number)
-	})
 
-	go utils.Loop(subCtx, 2*time.Second, chunkProposer.TryProposeChunk)
+	if !cfg.L2Config.RelayerConfig.MultiFinalizeSender {
+		// Watcher loop to fetch missing blocks
+		go utils.LoopWithContext(subCtx, 2*time.Second, func(ctx context.Context) {
+			number, loopErr := butils.GetLatestConfirmedBlockNumber(ctx, l2client, cfg.L2Config.Confirmations)
+			if loopErr != nil {
+				log.Error("failed to get block number", "err", loopErr)
+				return
+			}
+			l2watcher.TryFetchRunningMissingBlocks(number)
+		})
 
-	go utils.Loop(subCtx, 10*time.Second, batchProposer.TryProposeBatch)
+		go utils.Loop(subCtx, 2*time.Second, chunkProposer.TryProposeChunk)
 
-	go utils.Loop(subCtx, 3*time.Minute, l2relayer.MockProver)
+		go utils.Loop(subCtx, 10*time.Second, batchProposer.TryProposeBatch)
 
-	go utils.Loop(subCtx, 2*time.Second, l2relayer.ProcessPendingBatches)
+		go utils.Loop(subCtx, 1*time.Minute, l2relayer.MockProver)
 
-	go utils.Loop(subCtx, 15*time.Second, l2relayer.PreprocessCommittedBatches)
-	
-	go utils.Loop(subCtx, 15*time.Second, l2relayer.ProcessCommittedBatches)
+		go utils.Loop(subCtx, 2*time.Second, l2relayer.ProcessPendingBatches)
+
+		go utils.Loop(subCtx, 15*time.Second, l2relayer.PreprocessCommittedBatches)
+		
+		go utils.Loop(subCtx, 15*time.Second, l2relayer.ProcessCommittedBatches)
+
+	} else {
+		go utils.Loop(subCtx, 15*time.Second, l2relayer.PreprocessCommittedBatches)
+		
+		go utils.Loop(subCtx, 15*time.Second, l2relayer.ProcessCommittedBatches)
+	}
 
 	// Finish start all rollup relayer functions.
 	log.Info("Start rollup-relayer successfully")

@@ -64,7 +64,8 @@
       "commit_sender_private_key": "8917fba4d5142ffe0f83be1ea5fc6af0156bda7325d2020c141026a91ab29954",
       "finalize_sender_private_key": "38369473f1b04934fd51cf942de438d6e6d1bd46386b70bae68e46b8c3fc0ceb",
       "l1_commit_gas_limit_multiplier": 1.2,
-      "dummy_verifier": true
+      "dummy_verifier": true,
+      "multi_finalize_sender": false
     },
     "chunk_proposer_config": {
       "max_block_num_per_chunk": 100,

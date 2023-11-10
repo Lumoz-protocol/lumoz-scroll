@@ -435,9 +435,10 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 // ProcessCommittedBatches submit proof hash to layer1 rollup contract
 func (r *Layer2Relayer) PreprocessCommittedBatches() {
 	// fetch last finalized batch index
-	preProcessBatchIndex, err := r.finalizeFetcher.ScrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: false, From: *r.finalizeSender.SenderAddress()})
+	preProcessBatchIndex, err := r.finalizeFetcher.ScrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()})
 	if err != nil {
 		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
+		return
 	}
 	preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 
@@ -463,14 +464,14 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 			return
 		}
 		if batches[0].ProvingStatus != int16(types.ProvingTaskVerified) {
-			fmt.Println("Unable to send proofhash, since proof hasn't generated, batchIndex:", preProcessBatchIndex)
+			fmt.Println("Unable to send proofhash, since proof hasn't generated, batchIndex:", preProcessBatchIndex.String())
 			return
 		}
 
 		// check if should submit proofhash
 		err = r.finalizeFetcher.ScrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, preProcessBatchIndex)
 		if err != nil {
-			log.Error("Commit proofhash not allowed", "err", err)
+			log.Error("Commit proofhash not allowed, preProcessBatchIndex", preProcessBatchIndex.String(), "err", err)
 			return
 		}
 
@@ -497,7 +498,7 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 			log.Error("Fail to SubmitProofHash", "err", err)
 			return
 		}
-		log.Info("SubmitProofHash, txn hash:", submitTxHash.String())
+		log.Info("SubmitProofHash, txn hash:", submitTxHash.String(), preProcessBatchIndex.String())
 		r.processingSubmitProofHash.Store(txID, submitTxHash.String())
 
 		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
@@ -506,16 +507,9 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 
 // ProcessCommittedBatches submit proof to layer 1 rollup contract
 func (r *Layer2Relayer) ProcessCommittedBatches() {
-	// fetch last finalized batch index
-	ProcessBatchIndex, err := r.finalizeFetcher.ScrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: false, From: *r.finalizeSender.SenderAddress()})
-	if err != nil {
-		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
-	}
-	ProcessBatchIndex.Add(ProcessBatchIndex, big.NewInt(1))
-
 	// fetch batch index to proof
-	step := big.NewInt(20)
-	batchIndex, err := r.finalizeFetcher.ScrollChain.GetBatchToProve(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, ProcessBatchIndex, step)
+	searchBatchToProveRange := big.NewInt(20)
+	batchIndex, err := r.finalizeFetcher.ScrollChain.GetBatchToProve(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, searchBatchToProveRange)
 	if err != nil {
 		log.Error("Failed to fetch batchIndex to prove", "err", err)
 		return

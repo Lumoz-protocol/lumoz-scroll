@@ -10,28 +10,6 @@ This contract maintains data for the Scroll rollup.
 
 ## Methods
 
-### _isCommitProofAllowed
-
-```solidity
-function _isCommitProofAllowed(uint256 batchIndex) external view returns (enum ScrollChain.Error)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| batchIndex | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | enum ScrollChain.Error | undefined |
-
 ### addProver
 
 ```solidity
@@ -195,7 +173,7 @@ Return the state root of a committed batch.
 ### getBatchToProve
 
 ```solidity
-function getBatchToProve(uint256 _from, uint256 _step) external view returns (uint256)
+function getBatchToProve(uint256 step) external view returns (uint256)
 ```
 
 
@@ -206,8 +184,7 @@ function getBatchToProve(uint256 _from, uint256 _step) external view returns (ui
 
 | Name | Type | Description |
 |---|---|---|
-| _from | uint256 | undefined |
-| _step | uint256 | undefined |
+| step | uint256 | undefined |
 
 #### Returns
 

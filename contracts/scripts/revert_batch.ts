@@ -8,12 +8,12 @@ dotenv.config();
 
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
-
   const [deployer] = await ethers.getSigners();
-
   const ScrollChain = await ethers.getContractAt("ScrollChain", addressFile.get("ScrollChain.proxy"), deployer);
 
-  const tx = await ScrollChain.revertBatch("", "");
+  const batchHeader = "";
+  const count = "";
+  const tx = await ScrollChain.revertBatch(batchHeader, count);
   console.log(" ScrollChain revertBatch, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);

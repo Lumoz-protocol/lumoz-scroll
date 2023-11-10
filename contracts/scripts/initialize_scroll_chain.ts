@@ -45,6 +45,18 @@ async function main() {
   console.log("initialize ScrollChain setProofHashCommitEpoch, hash:", tx5.hash);
   const receipt5 = await tx5.wait();
   console.log(`✅ Done, gas used: ${receipt5.gasUsed}`);
+
+  const noProofPunishAmount = process.env.NO_PROOF_PUNISH_AMOUNT || 0;
+  const tx6 = await ScrollChain.setNoProofPunishAmount(noProofPunishAmount);
+  console.log("initialize ScrollChain setNoProofPunishAmount, hash:", tx6.hash);
+  const receipt6 = await tx6.wait();
+  console.log(`✅ Done, gas used: ${receipt6.gasUsed}`);
+
+  const incorrectProofPunishAmount = process.env.INCORRECT_PROOF_PUNISH_AMOUNT || 0;
+  const tx7 = await ScrollChain.setIncorrectProofPunishAmount(incorrectProofPunishAmount);
+  console.log("initialize ScrollChain setIncorrectProofPunishAmount, hash:", tx7.hash);
+  const receipt7 = await tx7.wait();
+  console.log(`✅ Done, gas used: ${receipt7.gasUsed}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
