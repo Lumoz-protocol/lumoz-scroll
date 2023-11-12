@@ -472,7 +472,7 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		err = r.finalizeFetcher.ScrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, preProcessBatchIndex)
 		if err != nil {
 			log.Error("Commit proofhash not allowed, preProcessBatchIndex", preProcessBatchIndex.String(), "err", err)
-			return
+			continue
 		}
 
 		// send proofhash
@@ -489,14 +489,14 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		)
 		if err != nil {
 			log.Error("Pack submitProofHash failed", "err", err)
-			return
+			continue
 		}
 		txID := batches[0].Hash + "-submit"
 		txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
 		submitTxHash := &txHash
 		if err != nil {
 			log.Error("Fail to SubmitProofHash", "err", err)
-			return
+			continue
 		}
 		log.Info("SubmitProofHash, txn hash:", submitTxHash.String(), preProcessBatchIndex.String())
 		r.processingSubmitProofHash.Store(txID, submitTxHash.String())

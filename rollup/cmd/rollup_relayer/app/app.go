@@ -111,13 +111,13 @@ func action(ctx *cli.Context) error {
 
 		go utils.Loop(subCtx, 10*time.Second, batchProposer.TryProposeBatch)
 
-		go utils.Loop(subCtx, 1*time.Minute, l2relayer.MockProver)
+		// go utils.Loop(subCtx, 1*time.Minute, l2relayer.MockProver)
 
-		go utils.Loop(subCtx, 2*time.Second, l2relayer.ProcessPendingBatches)
+		// go utils.Loop(subCtx, 2*time.Second, l2relayer.ProcessPendingBatches)
 
-		go utils.Loop(subCtx, 15*time.Second, l2relayer.PreprocessCommittedBatches)
+		// go utils.Loop(subCtx, 15*time.Second, l2relayer.PreprocessCommittedBatches)
 		
-		go utils.Loop(subCtx, 15*time.Second, l2relayer.ProcessCommittedBatches)
+		// go utils.Loop(subCtx, 15*time.Second, l2relayer.ProcessCommittedBatches)
 
 	} else {
 		go utils.Loop(subCtx, 15*time.Second, l2relayer.PreprocessCommittedBatches)
