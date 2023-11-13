@@ -34,7 +34,7 @@ RUN apt-get -qq update \
 COPY --from=builder /scroll/rollup/build/bin/event_watcher /usr/local/bin/
 COPY --from=builder /scroll/rollup/build/bin/gas_oracle /usr/local/bin/
 COPY --from=builder /scroll/rollup/build/bin/rollup_relayer /usr/local/bin/
-COPY --from=builder /scroll/database/build/bin/rollup_relayer /usr/local/bin/
+COPY --from=builder /scroll/database/build/bin/db_cli /usr/local/bin/
 COPY --from=zkp-builder /app/target/release/libzkp.so /usr/local/lib/
 COPY --from=zkp-builder /app/target/release/libzktrie.so /usr/local/lib/
 COPY run_rollup_relayer.sh /usr/local/bin
