@@ -4,6 +4,19 @@ pragma solidity 0.8.16;
 
 interface IScrollChainErrors {
     /**
+     * @dev Errors when submit proof
+     */
+    enum Errors {
+        NoError,
+        SubmitProofEarly,
+        ErrCommitProof,
+        SubmitProofTooLate,
+        CommittedProofHash,
+        CommittedProof,
+        SubmitFutureProof
+    }
+
+    /**
      * @dev Thrown when the SlotAdapter address is ZeroAddress
      */
     error SlotAdapterEmpty();
@@ -62,4 +75,9 @@ interface IScrollChainErrors {
      * @dev Thrown when prover submitted proof for a future batch index
      */
     error SubmitFutureProof();
+
+    /**
+     * @dev Thrown when prover submitted proof for a future batch index
+     */
+    error BlockCommittedBatch();
 }

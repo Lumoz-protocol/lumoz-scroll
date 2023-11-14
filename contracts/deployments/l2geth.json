@@ -1,38 +1,38 @@
 {
-  "ProxyAdmin": "0x7F8e1c320BC84b89be67e7427a20c7567Cca7316",
-  "Whitelist": "0xEC468d2d0353B88b369fC48C681bA4b3640dc9EA",
-  "ScrollStandardERC20": "0x0a1998b2d7067957B02792838568E55b94c7ef17",
-  "ScrollStandardERC20Factory": "0xDc04F57386Ee961D8d872fd3258bF145a6c73956",
+  "ProxyAdmin": null,
+  "Whitelist": null,
+  "ScrollStandardERC20": null,
+  "ScrollStandardERC20Factory": null,
   "L2ScrollMessenger": {
-    "implementation": "0xdE6eD567708A33C6A6FB4F208394a7F7e7A133A9",
-    "proxy": "0xF9430401AE1BBCA3870272ed7630F5Ce0d1384C3"
+    "implementation": null,
+    "proxy": null
   },
   "L2GatewayRouter": {
-    "implementation": "0x66C74d602098dDc1E436b4366B1c321f3627e8B1",
-    "proxy": "0x15ae6081Eb5d257441Ba0a6015d6a745281218c7"
+    "implementation": null,
+    "proxy": null
   },
   "L2StandardERC20Gateway": {
-    "implementation": "0x3E3FDbA27b8A5580d47fCbBffD49FcB3Bb6b6077",
-    "proxy": "0x471AA1Efcbada6f176496f425033259Da940f225"
+    "implementation": null,
+    "proxy": null
   },
   "L2WETHGateway": {
-    "implementation": "0x32566006f0AfB000a86C2fDF88a2F5c6e3c831C0",
-    "proxy": "0x02F60D9fBB256aDA64EcA700ecEa1fa3b6De1D4a"
+    "implementation": null,
+    "proxy": null
   },
   "L2CustomERC20Gateway": {
-    "implementation": "0x1e4750196062bCE4b5d3aD46FD6aA8848A1e833a",
-    "proxy": "0xADd69b47768e9719041d6CA1bbabbf265ba17457"
+    "implementation": null,
+    "proxy": null
   },
   "L2ERC721Gateway": {
-    "implementation": "0xdC589EC0ace66f80c1fbBC43d4c3ae4802fCB0CA",
-    "proxy": "0x8709384d8EE7c4cC10554792CAe7B5409b401b6b"
+    "implementation": null,
+    "proxy": null
   },
   "L2ERC1155Gateway": {
-    "implementation": "0xCa8F232F402C897C6dccdefAc79bF7570e021B56",
-    "proxy": "0x59d3C229Dd8959bE775AFE9c7ac3949a88B86C10"
+    "implementation": null,
+    "proxy": null
   },
   "L2ETHGateway": {
-    "implementation": "0xeA7f3e1eaB613aE16905f32a62A2fd202b0DBa7D",
-    "proxy": "0xA33612e119C1A4656FC588f52f19Cbe6e279b24e"
+    "implementation": null,
+    "proxy": null
   }
 }
