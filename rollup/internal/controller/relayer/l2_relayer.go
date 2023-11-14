@@ -440,9 +440,9 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
 		return
 	}
-	preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 
 	for {
+		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 		// Get proof by batchIndex from db
 		fields := map[string]interface{}{
 			"index": preProcessBatchIndex,
@@ -460,19 +460,11 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		}
 		if batches[0].ProvingStatus == int16(types.ProvingTaskFailed) {
 			fmt.Printf("Unable to send proofhash, since proof generation failed")
-			preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 			return
 		}
 		if batches[0].ProvingStatus != int16(types.ProvingTaskVerified) {
 			fmt.Println("Unable to send proofhash, since proof hasn't generated, batchIndex:", preProcessBatchIndex.String())
 			return
-		}
-
-		// check if should submit proofhash
-		err = r.finalizeFetcher.ScrollChain.IsCommitProofHashAllowed(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, preProcessBatchIndex)
-		if err != nil {
-			log.Error("Commit proofhash not allowed, preProcessBatchIndex", preProcessBatchIndex.String(), "err", err)
-			continue
 		}
 
 		// send proofhash
@@ -495,13 +487,14 @@ func (r *Layer2Relayer) PreprocessCommittedBatches() {
 		txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
 		submitTxHash := &txHash
 		if err != nil {
-			log.Error("Fail to SubmitProofHash", "err", err)
+			if err.Error() == "sender's pending pool is full" {
+				return
+			}
+			log.Error("Fail to SubmitProofHash, Since not allowed", "batchIndex", preProcessBatchIndex.String(), "err", err.Error())
 			continue
 		}
 		log.Info("SubmitProofHash, txn hash:", submitTxHash.String(), preProcessBatchIndex.String())
 		r.processingSubmitProofHash.Store(txID, submitTxHash.String())
-
-		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
 	}
 }
 

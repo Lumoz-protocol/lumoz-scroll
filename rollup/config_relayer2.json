@@ -47,7 +47,7 @@
           "max_gas_price": 150000000000,
           "tx_type": "LegacyTx",
           "min_balance": 500000000,
-          "pending_limit": 10
+          "pending_limit": 30
         },
         "gas_oracle_config": {
           "min_gas_price": 0,
