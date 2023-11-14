@@ -369,7 +369,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         emit CommitBatch(_batchIndex, _batchHash);
     }
 
-    function submitProofHash(uint256 batchIndex, bytes32 _proofHash) external {
+    function submitProofHash(uint256 batchIndex, bytes32 _proofHash) external isSlotAdapterEmpty {
         isCommitProofHashAllowed(batchIndex);
 
         uint256 _finalNewBatchNumber = committedBatchInfo[batchIndex].blockNumber;
@@ -445,7 +445,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         bytes32 _postStateRoot,
         bytes32 _withdrawRoot,
         bytes calldata _aggrProof
-    ) external override whenNotPaused {
+    ) external override whenNotPaused isSlotAdapterEmpty {
         require(_prevStateRoot != bytes32(0), "previous state root is zero");
         require(_postStateRoot != bytes32(0), "new state root is zero");
 
@@ -484,6 +484,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         if (proverCommitProofHash[_batchIndex][msg.sender].proofHash != proofHash) {
             punish(msg.sender, incorrectProofHashPunishAmount);
             updateProofLiquidation(proverCommitProofHash[_batchIndex][msg.sender].proofHash, true);
+            return;
         }
 
         // compute public input hash
