@@ -271,6 +271,10 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         bytes[] memory _chunks,
         bytes calldata _skippedL1MessageBitmap
     ) external override OnlySequencer whenNotPaused {
+        if (blockCommittedBatch[block.number]) {
+            revert BlockCommittedBatch();
+        }
+
         require(_version == 0, "invalid version");
 
         // check whether the batch is empty
@@ -296,9 +300,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
 
         uint256 _batchIndex = BatchHeaderV0Codec.batchIndex(batchPtr);
         uint256 _totalL1MessagesPoppedOverall = BatchHeaderV0Codec.totalL1MessagePopped(batchPtr);
-        if (blockCommittedBatch[block.number]) {
-            revert BlockCommittedBatch();
-        }
+
         require(committedBatches[_batchIndex] == _parentBatchHash, "incorrect parent batch hash");
         require(committedBatches[_batchIndex + 1] == 0, "batch already committed");
 
