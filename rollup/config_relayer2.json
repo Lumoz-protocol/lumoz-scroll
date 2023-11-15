@@ -1,0 +1,93 @@
+{
+    "l1_config": {
+      "confirmations": "0x6",
+      "endpoint": "http://61.10.9.22:11012/",
+      "l1_message_queue_address": "0x941B22ACbF1a5391EA5B555bc7aEdB2f1a11ef3B",
+      "scroll_chain_address": "0x675bc507475CEfC5DdF07F96De72851da751c178",
+      "start_height": 10007226,
+      "relayer_config": {
+        "gas_price_oracle_address": "0x5300000000000000000000000000000000000002",
+        "sender_config": {
+          "endpoint": "http://61.10.9.22:10051/",
+          "check_pending_time": 2,
+          "check_balance_time": 100,
+          "escalate_blocks": 100,
+          "confirmations": "0x1",
+          "escalate_multiple_num": 11,
+          "escalate_multiple_den": 10,
+          "max_gas_price": 15000000000,
+          "tx_type": "LegacyTx",
+          "min_balance": 500000000,
+          "pending_limit": 10
+        },
+        "gas_oracle_config": {
+          "min_gas_price": 0,
+          "gas_price_diff": 50000
+        },
+        "finalize_batch_interval_sec": 0,
+        "gas_oracle_sender_private_key": "fbc77e5a22f81a30d844847f14be9166dadf12258d966bf52b1b51ac916a9887"
+      }
+    },
+    "l2_config": {
+      "confirmations": "0x1",
+      "endpoint": "http://61.10.9.22:10051/",
+      "l2_messenger_address": "0xF9430401AE1BBCA3870272ed7630F5Ce0d1384C3",
+      "l2_message_queue_address": "0x5300000000000000000000000000000000000000",
+      "relayer_config": {
+        "rollup_contract_address": "0x675bc507475CEfC5DdF07F96De72851da751c178",
+        "gas_price_oracle_address": "0x549a41Ebd298a0d364bf3Bb0BF86b7B176b43b05",
+        "sender_config": {
+          "endpoint": "http://61.10.9.22:11012/",
+          "check_pending_time": 10,
+          "check_balance_time": 100,
+          "escalate_blocks": 100,
+          "confirmations": "0x6",
+          "escalate_multiple_num": 11,
+          "escalate_multiple_den": 10,
+          "max_gas_price": 150000000000,
+          "tx_type": "LegacyTx",
+          "min_balance": 500000000,
+          "pending_limit": 30
+        },
+        "gas_oracle_config": {
+          "min_gas_price": 0,
+          "gas_price_diff": 50000
+        },
+        "chain_monitor": {
+          "enabled": false,
+          "timeout": 3,
+          "try_times": 5,
+          "base_url": "http://localhost:8750"
+        },
+        "finalize_batch_interval_sec": 0,
+        "gas_oracle_sender_private_key": "fbc77e5a22f81a30d844847f14be9166dadf12258d966bf52b1b51ac916a9887",
+        "commit_sender_private_key": "8917fba4d5142ffe0f83be1ea5fc6af0156bda7325d2020c141026a91ab29954",
+        "finalize_sender_private_key": "59f597e6ba132e365bf7424c62c06716eefc09e43e57b756dae6748ca382258b",
+        "l1_commit_gas_limit_multiplier": 1.2,
+        "dummy_verifier": true,
+        "multi_finalize_sender": true
+      },
+      "chunk_proposer_config": {
+        "max_block_num_per_chunk": 100,
+        "max_tx_num_per_chunk": 100,
+        "max_l1_commit_gas_per_chunk": 11234567,
+        "max_l1_commit_calldata_size_per_chunk": 52345,
+        "chunk_timeout_sec": 300,
+        "max_row_consumption_per_chunk": 1048319,
+        "gas_cost_increase_multiplier": 1.2
+      },
+      "batch_proposer_config": {
+        "max_chunk_num_per_batch": 112,
+        "max_l1_commit_gas_per_batch": 11234567,
+        "max_l1_commit_calldata_size_per_batch": 52345,
+        "batch_timeout_sec": 300,
+        "gas_cost_increase_multiplier": 1.2
+      }
+    },
+    "db_config": {
+      "driver_name": "postgres",
+      "dsn": "postgres://admin:123456@61.10.9.22:10049/test?sslmode=disable",
+      "maxOpenNum": 200,
+      "maxIdleNum": 20
+    }
+  }

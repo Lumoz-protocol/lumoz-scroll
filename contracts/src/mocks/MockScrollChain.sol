@@ -134,7 +134,7 @@ contract MockScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChai
     IDeposit public ideDeposit;
 
     // blocknumber --> true
-    mapping(uint => bool) public blockCommitBatches;
+    mapping(uint256 => bool) public blockCommitBatches;
 
     // finalNewBatch --> proofHash
     mapping(uint256 => mapping(address => ProofHashData)) public proverCommitProofHash;
@@ -195,7 +195,11 @@ contract MockScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChai
         layer2ChainId = _chainId;
     }
 
-    function initialize(address _messageQueue, address _verifier, uint256 _maxNumTxInChunk) public initializer {
+    function initialize(
+        address _messageQueue,
+        address _verifier,
+        uint256 _maxNumTxInChunk
+    ) public initializer {
         OwnableUpgradeable.__Ownable_init();
 
         messageQueue = _messageQueue;
@@ -438,7 +442,7 @@ contract MockScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChai
         // compute batch hash and verify
         (uint256 memPtr, bytes32 _batchHash) = _loadBatchHeader(_batchHeader);
 
-        bytes32 _dataHash = BatchHeaderV0Codec.dataHash(memPtr);
+        // bytes32 _dataHash = BatchHeaderV0Codec.dataHash(memPtr);
         uint256 _batchIndex = BatchHeaderV0Codec.batchIndex(memPtr);
         // require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
 
@@ -460,9 +464,9 @@ contract MockScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChai
         }
 
         // compute public input hash
-        bytes32 _publicInputHash = keccak256(
-            abi.encodePacked(layer2ChainId, _prevStateRoot, _postStateRoot, _withdrawRoot, _dataHash)
-        );
+        // bytes32 _publicInputHash = keccak256(
+        //     abi.encodePacked(layer2ChainId, _prevStateRoot, _postStateRoot, _withdrawRoot, _dataHash)
+        // );
 
         // verify batch
         // try IRollupVerifier(verifier).verifyAggregateProof(_batchIndex, _aggrProof, _publicInputHash) {

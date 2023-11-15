@@ -1,3 +1,4 @@
+
 {
   "ProxyAdmin": null,
   "Whitelist": null,
@@ -6,10 +7,6 @@
     "proxy": null
   },
   "L2GasPriceOracle": {
-    "implementation": null,
-    "proxy": null
-  },
-  "ZKRollup": {
     "implementation": null,
     "proxy": null
   },
@@ -32,7 +29,8 @@
   "ScrollChain": {
     "verifier": null,
     "implementation": null,
-    "proxy": null
+    "proxy": null,
+    "multiple_verifier": null
   },
   "L1CustomERC20Gateway": {
     "implementation": null,

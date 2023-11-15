@@ -10,22 +10,6 @@ This contract maintains data for the Scroll rollup.
 
 ## Methods
 
-### addProver
-
-```solidity
-function addProver(address _account) external nonpayable
-```
-
-Add an account to the prover list.
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _account | address | The address of account to add. |
-
 ### addSequencer
 
 ```solidity
@@ -46,6 +30,28 @@ Add an account to the sequencer list.
 
 ```solidity
 function blockCommitBatches(uint256) external view returns (bool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined |
+
+### blockCommittedBatch
+
+```solidity
+function blockCommittedBatch(uint256) external view returns (bool)
 ```
 
 
@@ -170,6 +176,28 @@ Return the state root of a committed batch.
 |---|---|---|
 | _0 | bytes32 | undefined |
 
+### getBatchToProve
+
+```solidity
+function getBatchToProve(uint256 step) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| step | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### ideDeposit
 
 ```solidity
@@ -224,7 +252,7 @@ function incorrectProofHashPunishAmount() external view returns (uint256)
 ### initialize
 
 ```solidity
-function initialize(address _messageQueue, address _verifier, uint256 _maxNumTxInChunk) external nonpayable
+function initialize(address _messageQueue, address _verifier, uint256 _maxNumTxInChunk, address _sequencer, uint8 _proofHashCommitEpoch, uint8 _proofCommitEpoch, uint256 _minDeposit, uint256 _noProofPunishAmount, uint256 _incorrectProofHashPunishAmount, contract ISlotAdapter _slotAdapter, contract IDeposit _ideDeposit) external nonpayable
 ```
 
 
@@ -238,6 +266,14 @@ function initialize(address _messageQueue, address _verifier, uint256 _maxNumTxI
 | _messageQueue | address | undefined |
 | _verifier | address | undefined |
 | _maxNumTxInChunk | uint256 | undefined |
+| _sequencer | address | undefined |
+| _proofHashCommitEpoch | uint8 | undefined |
+| _proofCommitEpoch | uint8 | undefined |
+| _minDeposit | uint256 | undefined |
+| _noProofPunishAmount | uint256 | undefined |
+| _incorrectProofHashPunishAmount | uint256 | undefined |
+| _slotAdapter | contract ISlotAdapter | undefined |
+| _ideDeposit | contract IDeposit | undefined |
 
 ### isAllLiquidated
 
@@ -277,6 +313,22 @@ Return whether the batch is finalized by batch index.
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined |
+
+### isCommitProofHashAllowed
+
+```solidity
+function isCommitProofHashAllowed(uint256 batchIndex) external view
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| batchIndex | uint256 | undefined |
 
 ### isProver
 
@@ -612,22 +664,6 @@ function proverPosition(address, bytes32) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined |
-
-### removeProver
-
-```solidity
-function removeProver(address _account) external nonpayable
-```
-
-Add an account from the prover list.
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _account | address | The address of account to remove. |
 
 ### removeSequencer
 
@@ -1127,23 +1163,6 @@ Emitted when the value of `maxNumTxInChunk` is updated.
 | oldMaxNumTxInChunk  | uint256 | The old value of `maxNumTxInChunk`. |
 | newMaxNumTxInChunk  | uint256 | The new value of `maxNumTxInChunk`. |
 
-### UpdateProver
-
-```solidity
-event UpdateProver(address indexed account, bool status)
-```
-
-Emitted when owner updates the status of prover.
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| account `indexed` | address | The address of account updated. |
-| status  | bool | The status of the account updated. |
-
 ### UpdateSequencer
 
 ```solidity
@@ -1181,6 +1200,17 @@ Emitted when the address of rollup verifier is updated.
 
 
 ## Errors
+
+### BlockCommittedBatch
+
+```solidity
+error BlockCommittedBatch()
+```
+
+
+
+*Thrown when prover submitted proof for a future batch index*
+
 
 ### CommittedProof
 
@@ -1273,6 +1303,17 @@ error SlotAdapterEmpty()
 
 
 *Thrown when the SlotAdapter address is ZeroAddress*
+
+
+### SubmitFutureProof
+
+```solidity
+error SubmitFutureProof()
+```
+
+
+
+*Thrown when prover submitted proof for a future batch index*
 
 
 ### SubmitProofEarly

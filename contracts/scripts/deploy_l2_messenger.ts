@@ -11,7 +11,7 @@ async function main() {
   const ProxyAdmin = await ethers.getContractAt("ProxyAdmin", addressFile.get("ProxyAdmin"), deployer);
 
   const queue = process.env.L2_MESSAGE_QUEUE_ADDR!;
-  
+
   if (!addressFile.get("L2ScrollMessenger.implementation")) {
     console.log(">> Deploy L2ScrollMessenger implementation");
     const L2ScrollMessenger = await ethers.getContractFactory("L2ScrollMessenger", deployer);

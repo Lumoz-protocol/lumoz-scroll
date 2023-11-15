@@ -7,7 +7,11 @@ contract MockOpsideSlots {
 
     function initialize(address _openRegistrar, address _globalRewardPool) external {}
 
-    function setup(uint256 _slotId, uint256 chainId, address) external {}
+    function setup(
+        uint256 _slotId,
+        uint256 chainId,
+        address
+    ) external {}
 
     function start(uint256 _slotId) external {}
 }

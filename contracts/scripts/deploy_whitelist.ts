@@ -9,7 +9,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   if (!addressFile.get("Whitelist")) {
-    console.log(">> Deploy ProxyAdmin");
+    console.log(">> Deploy Whitelist");
     const whitelist = await ethers.getContractFactory("Whitelist", deployer);
     const _whitelist = await whitelist.deploy(deployer.address);
     console.log(`>> waiting for transaction: ${_whitelist.deployTransaction.hash}`);
@@ -19,7 +19,7 @@ async function main() {
   }
 
   // Export contract address to testnet.
-  console.log(`testnet-export: ${addressFile.get("ProxyAdmin")}`);
+  console.log(`testnet-export: ${addressFile.get("Whitelist")}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

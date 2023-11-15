@@ -87,6 +87,7 @@ type Sender struct {
 	metrics *senderMetrics
 }
 
+
 // NewSender returns a new instance of transaction sender
 // txConfirmationCh is used to notify confirmed transaction
 func NewSender(ctx context.Context, config *config.SenderConfig, priv *ecdsa.PrivateKey, service, name string, reg prometheus.Registerer) (*Sender, error) {
@@ -148,6 +149,10 @@ func NewSender(ctx context.Context, config *config.SenderConfig, priv *ecdsa.Pri
 	go sender.loop(ctx)
 
 	return sender, nil
+}
+
+func (s *Sender) SenderAddress() (*common.Address) {
+	return &s.auth.From
 }
 
 // PendingCount returns the current number of pending txs.

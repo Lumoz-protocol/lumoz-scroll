@@ -22,8 +22,12 @@ import (
 
 	bridgeAbi "scroll-tech/rollup/abi"
 	"scroll-tech/rollup/internal/config"
+	"scroll-tech/rollup/internal/controller/fetcher"
 	"scroll-tech/rollup/internal/controller/sender"
 	"scroll-tech/rollup/internal/orm"
+
+	solsha3 "github.com/miguelmota/go-solidity-sha3"
+	"github.com/scroll-tech/go-ethereum/accounts/abi/bind"
 )
 
 // Layer2Relayer is responsible for
@@ -43,6 +47,8 @@ type Layer2Relayer struct {
 	l2BlockOrm *orm.L2Block
 
 	cfg *config.RelayerConfig
+
+	finalizeFetcher *fetcher.Fetcher
 
 	commitSender   *sender.Sender
 	finalizeSender *sender.Sender
@@ -64,6 +70,10 @@ type Layer2Relayer struct {
 
 	// A list of processing batch finalization.
 	// key(string): confirmation ID, value(string): batch hash.
+	processingSubmitProofHash sync.Map
+
+	// A list of processing batch finalization.
+	// key(string): confirmation ID, value(string): batch hash.
 	processingFinalization sync.Map
 
 	metrics *l2RelayerMetrics
@@ -71,6 +81,11 @@ type Layer2Relayer struct {
 
 // NewLayer2Relayer will return a new instance of Layer2RelayerClient
 func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.DB, cfg *config.RelayerConfig, initGenesis bool, reg prometheus.Registerer) (*Layer2Relayer, error) {
+	finalizeFetcher, err := fetcher.NewFetcher(ctx, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("new finalize fetcher failed, err: %w", err)
+	}
+
 	commitSender, err := sender.NewSender(ctx, cfg.SenderConfig, cfg.CommitSenderPrivateKey, "l2_relayer", "commit_sender", reg)
 	if err != nil {
 		addr := crypto.PubkeyToAddress(cfg.CommitSenderPrivateKey.PublicKey)
@@ -108,6 +123,8 @@ func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.
 
 		l2Client: l2Client,
 
+		finalizeFetcher: finalizeFetcher,
+
 		commitSender:   commitSender,
 		finalizeSender: finalizeSender,
 		l1RollupABI:    bridgeAbi.ScrollChainABI,
@@ -118,9 +135,10 @@ func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.
 		minGasPrice:  minGasPrice,
 		gasPriceDiff: gasPriceDiff,
 
-		cfg:                    cfg,
-		processingCommitment:   sync.Map{},
-		processingFinalization: sync.Map{},
+		cfg:                       cfg,
+		processingCommitment:      sync.Map{},
+		processingSubmitProofHash: sync.Map{},
+		processingFinalization:    sync.Map{},
 	}
 
 	// chain_monitor client
@@ -143,12 +161,12 @@ func NewLayer2Relayer(ctx context.Context, l2Client *ethclient.Client, db *gorm.
 }
 
 func (r *Layer2Relayer) initializeGenesis() error {
-	// if count, err := r.batchOrm.GetBatchCount(r.ctx); err != nil {
-	// 	return fmt.Errorf("failed to get batch count: %v", err)
-	// } else if count > 0 {
-	// 	log.Info("genesis already imported", "batch count", count)
-	// 	return nil
-	// }
+	if count, err := r.batchOrm.GetBatchCount(r.ctx); err != nil {
+		return fmt.Errorf("failed to get batch count: %v", err)
+	} else if count > 0 {
+		log.Info("genesis already imported", "batch count", count)
+		return nil
+	}
 
 	genesis, err := r.l2Client.HeaderByNumber(r.ctx, big.NewInt(0))
 	if err != nil {
@@ -203,7 +221,8 @@ func (r *Layer2Relayer) initializeGenesis() error {
 
 		// commit genesis batch on L1
 		// note: we do this inside the DB transaction so that we can revert all DB changes if this step fails
-		return r.commitGenesisBatch(batch.Hash, batch.BatchHeader, common.HexToHash(batch.StateRoot))
+		// return r.commitGenesisBatch(batch.Hash, batch.BatchHeader, common.HexToHash(batch.StateRoot))
+		return nil
 	})
 
 	if err != nil {
@@ -307,7 +326,7 @@ func (r *Layer2Relayer) ProcessGasPriceOracle() {
 // ProcessPendingBatches processes the pending batches by sending commitBatch transactions to layer 1.
 func (r *Layer2Relayer) ProcessPendingBatches() {
 	// get pending batches from database in ascending order by their index.
-	batches, err := r.batchOrm.GetFailedAndPendingBatches(r.ctx, 5)
+	batches, err := r.batchOrm.GetFailedAndPendingBatches(r.ctx, 1)
 	if err != nil {
 		log.Error("Failed to fetch pending L2 batches", "err", err)
 		return
@@ -413,11 +432,90 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 	}
 }
 
+// ProcessCommittedBatches submit proof hash to layer1 rollup contract
+func (r *Layer2Relayer) PreprocessCommittedBatches() {
+	// fetch last finalized batch index
+	preProcessBatchIndex, err := r.finalizeFetcher.ScrollChain.LastFinalizedBatchIndex(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()})
+	if err != nil {
+		log.Error("Failed to fetch LastFinalizedBatchIndex", "err", err)
+		return
+	}
+
+	for {
+		preProcessBatchIndex.Add(preProcessBatchIndex, big.NewInt(1))
+		// Get proof by batchIndex from db
+		fields := map[string]interface{}{
+			"index": preProcessBatchIndex,
+		}
+		orderByList := []string{"index ASC"}
+		limit := 1
+		batches, err := r.batchOrm.GetBatches(r.ctx, fields, orderByList, limit)
+		if err != nil {
+			log.Error("Failed to get batches from db", "err", err)
+			return
+		}
+		if len(batches) != 1 {
+			log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
+			return
+		}
+		if batches[0].ProvingStatus == int16(types.ProvingTaskFailed) {
+			fmt.Printf("Unable to send proofhash, since proof generation failed")
+			return
+		}
+		if batches[0].ProvingStatus != int16(types.ProvingTaskVerified) {
+			fmt.Println("Unable to send proofhash, since proof hasn't generated, batchIndex:", preProcessBatchIndex.String())
+			return
+		}
+
+		// send proofhash
+		sha3 := solsha3.SoliditySHA3(batches[0].Proof)
+		pack := solsha3.Pack([]string{"string", "address"}, []interface{}{
+			sha3,
+			r.finalizeSender.SenderAddress(),
+		})
+		hash := crypto.Keccak256Hash(pack)
+		data, err := r.l1RollupABI.Pack(
+			"submitProofHash",
+			preProcessBatchIndex,
+			hash,
+		)
+		if err != nil {
+			log.Error("Pack submitProofHash failed", "err", err)
+			continue
+		}
+		txID := batches[0].Hash + "-submit"
+		txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
+		submitTxHash := &txHash
+		if err != nil {
+			if err.Error() == "sender's pending pool is full" {
+				return
+			}
+			log.Error("Fail to SubmitProofHash, Since not allowed", "batchIndex", preProcessBatchIndex.String(), "err", err.Error())
+			continue
+		}
+		log.Info("SubmitProofHash, txn hash:", submitTxHash.String(), preProcessBatchIndex.String())
+		r.processingSubmitProofHash.Store(txID, submitTxHash.String())
+	}
+}
+
 // ProcessCommittedBatches submit proof to layer 1 rollup contract
 func (r *Layer2Relayer) ProcessCommittedBatches() {
-	// retrieves the earliest batch whose rollup status is 'committed'
+	// fetch batch index to proof
+	searchBatchToProveRange := big.NewInt(20)
+	batchIndex, err := r.finalizeFetcher.ScrollChain.GetBatchToProve(&bind.CallOpts{Pending: true, From: *r.finalizeSender.SenderAddress()}, searchBatchToProveRange)
+	if err != nil {
+		log.Error("Failed to fetch batchIndex to prove", "err", err)
+		return
+	}
+
+	if batchIndex.Cmp(big.NewInt(0)) == 0 {
+		log.Info("Currently, no batch is provable")
+		return
+	}
+
+	// send proof
 	fields := map[string]interface{}{
-		"rollup_status": types.RollupCommitted,
+		"index": batchIndex,
 	}
 	orderByList := []string{"index ASC"}
 	limit := 1
@@ -430,152 +528,91 @@ func (r *Layer2Relayer) ProcessCommittedBatches() {
 		log.Warn("Unexpected result for GetBlockBatches", "number of batches", len(batches))
 		return
 	}
-
-	r.metrics.rollupL2RelayerProcessCommittedBatchesTotal.Inc()
-
 	batch := batches[0]
-	hash := batch.Hash
-	status := types.ProvingStatus(batch.ProvingStatus)
-	switch status {
-	case types.ProvingTaskUnassigned, types.ProvingTaskAssigned:
-		// The proof for this block is not ready yet.
-		return
-	case types.ProvingTaskVerified:
-		log.Info("Start to roll up zk proof", "hash", hash)
-		r.metrics.rollupL2RelayerProcessCommittedBatchesFinalizedTotal.Inc()
-
-		// Check batch status before send `finalizeBatchWithProof` tx.
-		if r.cfg.ChainMonitor.Enabled {
-			var batchStatus bool
-			batchStatus, err = r.getBatchStatusByIndex(batch.Index)
-			if err != nil {
-				r.metrics.rollupL2ChainMonitorLatestFailedCall.Inc()
-				log.Warn("failed to get batch status, please check chain_monitor api server", "batch_index", batch.Index, "err", err)
-				return
-			}
-			if !batchStatus {
-				r.metrics.rollupL2ChainMonitorLatestFailedBatchStatus.Inc()
-				log.Error("the batch status is not right, stop finalize batch and check the reason", "batch_index", batch.Index)
-				return
-			}
-		}
-
-		var parentBatchStateRoot string
-		if batch.Index > 0 {
-			var parentBatch *orm.Batch
-			parentBatch, err = r.batchOrm.GetBatchByIndex(r.ctx, batch.Index-1)
-			// handle unexpected db error
-			if err != nil {
-				log.Error("Failed to get batch", "index", batch.Index-1, "err", err)
-				return
-			}
-			parentBatchStateRoot = parentBatch.StateRoot
-		}
-		var (
-			data []byte
-			err  error
-		)
-		if r.cfg.DummyVerifier {
-			data, err = r.l1RollupABI.Pack(
-				"finalizeBatchWithProof",
-				batch.BatchHeader,
-				common.HexToHash(parentBatchStateRoot),
-				common.HexToHash(batch.StateRoot),
-				common.HexToHash(batch.WithdrawRoot),
-				[]byte{},
-			)
-			if err != nil {
-				log.Error("Pack finalizeBatchWithProof failed", "err", err)
-				return
-			}
-		} else {
-			aggProof, err := r.batchOrm.GetVerifiedProofByHash(r.ctx, hash)
-			if err != nil {
-				log.Error("get verified proof by hash failed", "hash", hash, "err", err)
-				return
-			}
-
-			if err = aggProof.SanityCheck(); err != nil {
-				log.Error("agg_proof sanity check fails", "hash", hash, "error", err)
-				return
-			}
-
-			data, err = r.l1RollupABI.Pack(
-				"finalizeBatchWithProof",
-				batch.BatchHeader,
-				common.HexToHash(parentBatchStateRoot),
-				common.HexToHash(batch.StateRoot),
-				common.HexToHash(batch.WithdrawRoot),
-				aggProof.Proof,
-			)
-			if err != nil {
-				log.Error("Pack finalizeBatchWithProof failed", "err", err)
-				return
-			}
-		}
-
-		txID := hash + "-finalize"
-		// add suffix `-finalize` to avoid duplication with commit tx in unit tests
-		txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
-		finalizeTxHash := &txHash
+	var prevStateRoot string
+	if batch.Index > 0 {
+		var parentBatch *orm.Batch
+		parentBatch, err = r.batchOrm.GetBatchByIndex(r.ctx, batch.Index-1)
 		if err != nil {
-			if !errors.Is(err, sender.ErrNoAvailableAccount) && !errors.Is(err, sender.ErrFullPending) {
-				// This can happen normally if we try to finalize 2 or more
-				// batches around the same time. The 2nd tx might fail since
-				// the client does not see the 1st tx's updates at this point.
-				// TODO: add more fine-grained error handling
-				log.Error(
-					"finalizeBatchWithProof in layer1 failed",
-					"index", batch.Index,
-					"hash", batch.Hash,
-					"RollupContractAddress", r.cfg.RollupContractAddress,
-					"err", err,
-				)
-				log.Debug(
-					"finalizeBatchWithProof in layer1 failed",
-					"index", batch.Index,
-					"hash", batch.Hash,
-					"RollupContractAddress", r.cfg.RollupContractAddress,
-					"calldata", common.Bytes2Hex(data),
-					"err", err,
-				)
-			}
+			log.Error("Failed to get batch", "index", batch.Index-1, "err", err)
 			return
 		}
-		log.Info("finalizeBatchWithProof in layer1", "index", batch.Index, "batch hash", batch.Hash, "tx hash", hash)
-
-		// record and sync with db, @todo handle db error
-		err = r.batchOrm.UpdateFinalizeTxHashAndRollupStatus(r.ctx, hash, finalizeTxHash.String(), types.RollupFinalizing)
-		if err != nil {
-			log.Error("UpdateFinalizeTxHashAndRollupStatus failed",
-				"index", batch.Index, "batch hash", batch.Hash,
-				"tx hash", finalizeTxHash.String(), "err", err)
-		}
-		r.processingFinalization.Store(txID, hash)
-		r.metrics.rollupL2RelayerProcessCommittedBatchesFinalizedSuccessTotal.Inc()
-
-	case types.ProvingTaskFailed:
-		// We were unable to prove this batch. There are two possibilities:
-		// (a) Prover bug. In this case, we should fix and redeploy the prover.
-		//     In the meantime, we continue to commit batches to L1 as well as
-		//     proposing and proving chunks and batches.
-		// (b) Unprovable batch, e.g. proof overflow. In this case we need to
-		//     stop the ledger, fix the limit, revert all the violating blocks,
-		//     chunks and batches and all subsequent ones, and resume, i.e. this
-		//     case requires manual resolution.
-		log.Error(
-			"batch proving failed",
-			"Index", batch.Index,
-			"Hash", batch.Hash,
-			"ProverAssignedAt", batch.ProverAssignedAt,
-			"ProvedAt", batch.ProvedAt,
-			"ProofTimeSec", batch.ProofTimeSec,
-		)
-		return
-
-	default:
-		log.Error("encounter unreachable case in ProcessCommittedBatches", "proving status", status)
+		prevStateRoot = parentBatch.StateRoot
 	}
+	var data []byte
+	if r.cfg.DummyVerifier {
+		data, err = r.l1RollupABI.Pack(
+			"finalizeBatchWithProof",
+			batch.BatchHeader,
+			common.HexToHash(prevStateRoot),
+			common.HexToHash(batch.StateRoot),
+			common.HexToHash(batch.WithdrawRoot),
+			[]byte{},
+		)
+		if err != nil {
+			log.Error("Pack finalizeBatchWithProof failed", "err", err)
+			return
+		}
+	} else {
+		aggProof, err := r.batchOrm.GetVerifiedProofByHash(r.ctx, batch.Hash)
+		if err != nil {
+			log.Error("get verified proof by hash failed", "hash", batch.Hash, "err", err)
+			return
+		}
+
+		if err = aggProof.SanityCheck(); err != nil {
+			log.Error("agg_proof sanity check fails", "hash", batch.Hash, "error", err)
+			return
+		}
+
+		data, err = r.l1RollupABI.Pack(
+			"finalizeBatchWithProof",
+			batch.BatchHeader,
+			common.HexToHash(prevStateRoot),
+			common.HexToHash(batch.StateRoot),
+			common.HexToHash(batch.WithdrawRoot),
+			aggProof.Proof,
+		)
+		if err != nil {
+			log.Error("Pack finalizeBatchWithProof failed", "err", err)
+			return
+		}
+	}
+	txID := batch.Hash + "-finalize"
+	// add suffix `-finalize` to avoid duplication with commit tx in unit tests
+	txHash, err := r.finalizeSender.SendTransaction(txID, &r.cfg.RollupContractAddress, big.NewInt(0), data, 0)
+	finalizeTxHash := &txHash
+	if err != nil {
+		if !errors.Is(err, sender.ErrNoAvailableAccount) && !errors.Is(err, sender.ErrFullPending) {
+			// This can happen normally if we try to finalize 2 or more
+			// batches around the same time. The 2nd tx might fail since
+			// the client does not see the 1st tx's updates at this point.
+			// TODO: add more fine-grained error handling
+			log.Error(
+				"finalizeBatchWithProof in layer1 failed",
+				"index", batch.Index,
+				"hash", batch.Hash,
+				"RollupContractAddress", r.cfg.RollupContractAddress,
+				"err", err,
+			)
+			log.Debug(
+				"finalizeBatchWithProof in layer1 failed",
+				"index", batch.Index,
+				"hash", batch.Hash,
+				"RollupContractAddress", r.cfg.RollupContractAddress,
+				"calldata", common.Bytes2Hex(data),
+				"err", err,
+			)
+		}
+		return
+	}
+	err = r.batchOrm.UpdateFinalizeTxHashAndRollupStatus(r.ctx, batch.Hash, finalizeTxHash.String(), types.RollupFinalizing)
+	if err != nil {
+		log.Error("UpdateFinalizeTxHashAndRollupStatus failed",
+			"index", batch.Index, "batch hash", batch.Hash,
+			"tx hash", finalizeTxHash.String(), "err", err)
+	}
+	r.processingFinalization.Store(txID, batch.Hash)
 }
 
 // batchStatusResponse the response schema
@@ -633,6 +670,12 @@ func (r *Layer2Relayer) handleConfirmation(confirmation *sender.Confirmation) {
 		r.metrics.rollupL2BatchesCommittedConfirmedTotal.Inc()
 		r.processingCommitment.Delete(confirmation.ID)
 	}
+
+	// check whether it is SubmitProofHash transaction
+	// TODO
+	// if batchHash, ok := r.processingSubmitProofHash.Load(confirmation.ID); ok {
+
+	// }
 
 	// check whether it is proof finalization transaction
 	if batchHash, ok := r.processingFinalization.Load(confirmation.ID); ok {

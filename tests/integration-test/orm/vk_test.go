@@ -1,0 +1,11 @@
+package orm
+
+import "testing"
+
+func Test(T *testing.T) {
+	string1 := "AAAAGgAAAASKqp0dmm4kCfJUVl38xXR4YUhcZHUlRcbhkQRt4Y0Kg3KkJflYFdAja21LCa80rrbYFhVME7j5jgNWGIolWF0cHFO5vtDfadXdLdNgA3PQDqYAlldZlsS2vLU6Tuolh622RbpzoLiiswIQ2mJzfb9o2tboGON4k9gPOCGoXWKFiocoL81A82tN3wWDtIdpBa0FYfXN7hve8h4ofXrhLpcEiCa9/Z+cfte/RvdIB1oy73qrlPBNbbIpjRQyhOmUggyGiHH6vdjfi4OJqOWsbt534sguNxWdWAGb4lcQK1tFjg=="
+	string2 := "AAAAGgAAAASKqp0dmm4kCfJUVl38xXR4YUhcZHUlRcbhkQRt4Y0Kg3KkJflYFdAja21LCa80rrbYFhVME7j5jgNWGIolWF0cHFO5vtDfadXdLdNgA3PQDqYAlldZlsS2vLU6Tuolh622RbpzoLiiswIQ2mJzfb9o2tboGON4k9gPOCGoXWKFiocoL81A82tN3wWDtIdpBa0FYfXN7hve8h4ofXrhLpcEiCa9/Z+cfte/RvdIB1oy73qrlPBNbbIpjRQyhOmUggyGiHH6vdjfi4OJqOWsbt534sguNxWdWAGb4lcQK1tFjg=="
+	if string1 == string2 {
+		T.Fatal("fail")
+	}
+}

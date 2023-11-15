@@ -55,11 +55,6 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
     /// @param status The status of the account updated.
     event UpdateSequencer(address indexed account, bool status);
 
-    /// @notice Emitted when owner updates the status of prover.
-    /// @param account The address of account updated.
-    /// @param status The status of the account updated.
-    event UpdateProver(address indexed account, bool status);
-
     /// @notice Emitted when the address of rollup verifier is updated.
     /// @param oldVerifier The address of old rollup verifier.
     /// @param newVerifier The address of new rollup verifier.
@@ -149,6 +144,9 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
      *        proofHash              proof start         proof end   */
     uint8 public proofCommitEpoch;
 
+    // blocknumber --> true
+    mapping(uint256 => bool) public blockCommittedBatch;
+
     /**********************
      * Function Modifiers *
      **********************/
@@ -156,11 +154,6 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
     modifier OnlySequencer() {
         // @note In the decentralized mode, it should be only called by a list of validator.
         require(isSequencer[_msgSender()], "caller not sequencer");
-        _;
-    }
-
-    modifier OnlyProver() {
-        require(isProver[_msgSender()], "caller not prover");
         _;
     }
 
@@ -195,15 +188,39 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         layer2ChainId = _chainId;
     }
 
-    function initialize(address _messageQueue, address _verifier, uint256 _maxNumTxInChunk) public initializer {
+    function initialize(
+        address _messageQueue,
+        address _verifier,
+        uint256 _maxNumTxInChunk,
+        address _sequencer,
+        uint8 _proofHashCommitEpoch,
+        uint8 _proofCommitEpoch,
+        uint256 _minDeposit,
+        uint256 _noProofPunishAmount,
+        uint256 _incorrectProofHashPunishAmount,
+        ISlotAdapter _slotAdapter,
+        IDeposit _ideDeposit
+    ) public initializer {
         OwnableUpgradeable.__Ownable_init();
 
         messageQueue = _messageQueue;
         verifier = _verifier;
         maxNumTxInChunk = _maxNumTxInChunk;
+        isSequencer[_sequencer] = true;
+
+        proofHashCommitEpoch = _proofHashCommitEpoch;
+        proofCommitEpoch = _proofCommitEpoch;
+        minDeposit = _minDeposit;
+        noProofPunishAmount = _noProofPunishAmount;
+        incorrectProofHashPunishAmount = _incorrectProofHashPunishAmount;
+        slotAdapter = _slotAdapter;
+        ideDeposit = _ideDeposit;
 
         emit UpdateVerifier(address(0), _verifier);
         emit UpdateMaxNumTxInChunk(0, _maxNumTxInChunk);
+        emit UpdateSequencer(_sequencer, true);
+        emit SetProofHashCommitEpoch(_proofHashCommitEpoch);
+        emit SetProofCommitEpoch(_proofCommitEpoch);
     }
 
     /*************************
@@ -254,6 +271,10 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         bytes[] memory _chunks,
         bytes calldata _skippedL1MessageBitmap
     ) external override OnlySequencer whenNotPaused {
+        if (blockCommittedBatch[block.number]) {
+            revert BlockCommittedBatch();
+        }
+
         require(_version == 0, "invalid version");
 
         // check whether the batch is empty
@@ -279,6 +300,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
 
         uint256 _batchIndex = BatchHeaderV0Codec.batchIndex(batchPtr);
         uint256 _totalL1MessagesPoppedOverall = BatchHeaderV0Codec.totalL1MessagePopped(batchPtr);
+
         require(committedBatches[_batchIndex] == _parentBatchHash, "incorrect parent batch hash");
         require(committedBatches[_batchIndex + 1] == 0, "batch already committed");
 
@@ -337,8 +359,9 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         // compute batch hash
         bytes32 _batchHash = BatchHeaderV0Codec.computeBatchHash(batchPtr, 89 + _skippedL1MessageBitmap.length);
 
-        committedBatches[_batchIndex] = _batchHash;
+        blockCommittedBatch[block.number] = true;
 
+        committedBatches[_batchIndex] = _batchHash;
         committedBatchInfo[_batchIndex] = CommitInfo({blockNumber: 0, proofSubmitted: false});
 
         slotAdapter.calcSlotReward(uint64(_batchIndex), ideDeposit);
@@ -346,16 +369,8 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         emit CommitBatch(_batchIndex, _batchHash);
     }
 
-    function submitProofHash(uint256 batchIndex, bytes32 _proofHash) external {
+    function submitProofHash(uint256 batchIndex, bytes32 _proofHash) external isSlotAdapterEmpty {
         isCommitProofHashAllowed(batchIndex);
-
-        if (ideDeposit.depositOf(msg.sender) < minDeposit) {
-            revert InsufficientPledge();
-        }
-
-        if (committedBatches[batchIndex] == bytes32(0)) {
-            revert ErrorBatchHash(committedBatches[batchIndex]);
-        }
 
         uint256 _finalNewBatchNumber = committedBatchInfo[batchIndex].blockNumber;
         if (
@@ -430,7 +445,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         bytes32 _postStateRoot,
         bytes32 _withdrawRoot,
         bytes calldata _aggrProof
-    ) external override OnlyProver whenNotPaused {
+    ) external override whenNotPaused isSlotAdapterEmpty {
         require(_prevStateRoot != bytes32(0), "previous state root is zero");
         require(_postStateRoot != bytes32(0), "new state root is zero");
 
@@ -442,7 +457,20 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         require(committedBatches[_batchIndex] == _batchHash, "incorrect batch hash");
 
         // make sure committing proof complies with the two step commitment rule
-        isCommitProofAllowed(_batchIndex);
+        Errors _error = isCommitProofAllowed(_batchIndex);
+        if (_error == Errors.SubmitProofEarly) {
+            revert SubmitProofEarly();
+        } else if (_error == Errors.ErrCommitProof) {
+            revert ErrCommitProof();
+        } else if (_error == Errors.SubmitProofTooLate) {
+            revert SubmitProofTooLate();
+        } else if (_error == Errors.CommittedProofHash) {
+            revert CommittedProofHash();
+        } else if (_error == Errors.CommittedProof) {
+            revert CommittedProof();
+        } else if (_error == Errors.SubmitFutureProof) {
+            revert SubmitFutureProof();
+        }
 
         // verify previous state root.
         require(finalizedStateRoots[_batchIndex - 1] == _prevStateRoot, "incorrect previous state root");
@@ -454,8 +482,9 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         // check proof hash
         bytes32 proofHash = keccak256(abi.encodePacked(keccak256(_aggrProof), msg.sender));
         if (proverCommitProofHash[_batchIndex][msg.sender].proofHash != proofHash) {
-            slotAdapter.punish(msg.sender, ideDeposit, incorrectProofHashPunishAmount);
+            punish(msg.sender, incorrectProofHashPunishAmount);
             updateProofLiquidation(proverCommitProofHash[_batchIndex][msg.sender].proofHash, true);
+            return;
         }
 
         // compute public input hash
@@ -521,7 +550,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
             }
             proverCommitProofHash[_batchIndex][msg.sender].proof = true;
         } else {
-            slotAdapter.punish(msg.sender, ideDeposit, incorrectProofHashPunishAmount);
+            punish(msg.sender, incorrectProofHashPunishAmount);
             updateProofLiquidation(proofHash, true);
         }
     }
@@ -544,22 +573,6 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         isSequencer[_account] = false;
 
         emit UpdateSequencer(_account, false);
-    }
-
-    /// @notice Add an account to the prover list.
-    /// @param _account The address of account to add.
-    function addProver(address _account) external onlyOwner {
-        isProver[_account] = true;
-
-        emit UpdateProver(_account, true);
-    }
-
-    /// @notice Add an account from the prover list.
-    /// @param _account The address of account to remove.
-    function removeProver(address _account) external onlyOwner {
-        isProver[_account] = false;
-
-        emit UpdateProver(_account, false);
     }
 
     /// @notice Update the address verifier contract.
@@ -622,49 +635,89 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         incorrectProofHashPunishAmount = _amount;
     }
 
-    /**********************
-     * Internal Functions *
-     **********************/
+    /*************************
+     * Public View Functions *
+     *************************/
 
     function isCommitProofHashAllowed(uint256 batchIndex) internal view {
         ProofHashData memory proofHashData = proverCommitProofHash[batchIndex][msg.sender];
         if (lastFinalizedBatchIndex >= batchIndex || proofHashData.proof) {
             revert CommittedProof();
         }
+
         if (
-            proofHashData.proofHash != bytes32(0) &&
-            (proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) > block.number
+            (proofHashData.proofHash != bytes32(0) &&
+                (proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) > block.number)
         ) {
             revert CommittedProofHash();
         }
+
+        if (ideDeposit.depositOf(msg.sender) < minDeposit) {
+            revert InsufficientPledge();
+        }
+
+        if (committedBatches[batchIndex] == bytes32(0)) {
+            revert ErrorBatchHash(committedBatches[batchIndex]);
+        }
     }
 
-    function isCommitProofAllowed(uint256 batchIndex) internal view {
+    function isCommitProofAllowed(uint256 batchIndex) internal view returns (Errors) {
         CommitInfo memory BatchInfo = committedBatchInfo[batchIndex];
         if (BatchInfo.blockNumber + proofHashCommitEpoch > block.number) {
-            revert SubmitProofEarly();
+            return Errors.SubmitProofEarly;
         }
 
         ProofHashData memory _proofHashData = proverCommitProofHash[batchIndex][msg.sender];
         if (_proofHashData.blockNumber != BatchInfo.blockNumber) {
-            revert ErrCommitProof();
+            return Errors.ErrCommitProof;
         }
 
         if (
             !BatchInfo.proofSubmitted &&
             (_proofHashData.blockNumber + proofHashCommitEpoch + proofCommitEpoch) < block.number
         ) {
-            revert SubmitProofTooLate();
+            return Errors.SubmitProofTooLate;
         }
 
         if (_proofHashData.proofHash == bytes32(0)) {
-            revert CommittedProofHash();
+            return Errors.CommittedProofHash;
         }
 
         if (_proofHashData.proof == true) {
-            revert CommittedProof();
+            return Errors.CommittedProof;
+        }
+
+        if (batchIndex > lastFinalizedBatchIndex + 1) {
+            return Errors.SubmitFutureProof;
+        }
+        return Errors.NoError;
+    }
+
+    // For Provers to fetch provable batch
+    function getBatchToProve(uint256 step) public view returns (uint256) {
+        uint256 from = lastFinalizedBatchIndex + 1;
+        uint256 to;
+        if (step < from) {
+            to = from - step;
+        } else {
+            to = 0;
+        }
+
+        while (true) {
+            if (isCommitProofAllowed(from) == Errors.NoError) {
+                return from;
+            }
+            // in case exceed range
+            if (from <= to) {
+                return 0;
+            }
+            from--;
         }
     }
+
+    /**********************
+     * Internal Functions *
+     **********************/
 
     /// @dev Internal function to load batch header from calldata to memory.
     /// @param _batchHeader The batch header in calldata.
@@ -831,6 +884,12 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
         return _ptr;
     }
 
+    function punish(address _account, uint256 _noProofPunishAmount) internal {
+        try slotAdapter.punish(_account, ideDeposit, _noProofPunishAmount) {} catch {
+            revert InsufficientPledge();
+        }
+    }
+
     function updateProofHashLiquidation(bytes32 _proofHash, uint64 finalNewBatch) internal {
         ProverLiquidationInfo[] storage proverLiquidations = proverLiquidation[msg.sender];
         proverLiquidations.push(
@@ -874,7 +933,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
                         ) {
                             proverLiquidationInfo.isLiquidated = true;
                             proverLastLiquidated[_account]++;
-                            slotAdapter.punish(_account, ideDeposit, noProofPunishAmount);
+                            punish(_account, noProofPunishAmount);
                         } else {
                             // No need to proceed, until pass the (proofHashCommitEpoch + proofCommitEpoch) time
                             return;
@@ -890,7 +949,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
                     ) {
                         proverLiquidationInfo.isLiquidated = true;
                         proverLastLiquidated[_account]++;
-                        slotAdapter.punish(_account, ideDeposit, noProofPunishAmount);
+                        punish(_account, noProofPunishAmount);
                     }
                 }
             } else {

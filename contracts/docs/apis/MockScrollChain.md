@@ -1182,6 +1182,17 @@ Emitted when the address of rollup verifier is updated.
 
 ## Errors
 
+### BlockCommittedBatch
+
+```solidity
+error BlockCommittedBatch()
+```
+
+
+
+*Thrown when prover submitted proof for a future batch index*
+
+
 ### CommittedProof
 
 ```solidity
@@ -1273,6 +1284,17 @@ error SlotAdapterEmpty()
 
 
 *Thrown when the SlotAdapter address is ZeroAddress*
+
+
+### SubmitFutureProof
+
+```solidity
+error SubmitFutureProof()
+```
+
+
+
+*Thrown when prover submitted proof for a future batch index*
 
 
 ### SubmitProofEarly

@@ -49,6 +49,7 @@ type ChainMonitor struct {
 // What we need to pay attention to is that
 type RelayerConfig struct {
 	DummyVerifier bool `json:"dummy_verifier"`
+	MultiFinalizeSender bool `json:"multi_finalize_sender"`
 	// RollupContractAddress store the rollup contract address.
 	RollupContractAddress common.Address `json:"rollup_contract_address,omitempty"`
 	// GasPriceOracleContractAddress store the scroll messenger contract address.
