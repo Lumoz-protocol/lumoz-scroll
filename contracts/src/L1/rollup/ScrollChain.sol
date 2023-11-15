@@ -639,7 +639,7 @@ contract ScrollChain is OwnableUpgradeable, PausableUpgradeable, IScrollChain, I
      * Public View Functions *
      *************************/
 
-    function isCommitProofHashAllowed(uint256 batchIndex) public view {
+    function isCommitProofHashAllowed(uint256 batchIndex) internal view {
         ProofHashData memory proofHashData = proverCommitProofHash[batchIndex][msg.sender];
         if (lastFinalizedBatchIndex >= batchIndex || proofHashData.proof) {
             revert CommittedProof();
