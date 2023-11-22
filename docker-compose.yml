@@ -1,0 +1,25 @@
+version: '3.2'
+services:
+  l2geth:
+    container_name: l2geth
+    image: l2geth:latest
+    deploy:
+      resources:
+        limits:
+          memory: 10G
+        reservations:
+          memory: 5G
+    ports:
+      - 10001:8545
+    volumes:
+      - ./data:/l2geth/data
+      - ./password:/l2geth/password
+    environment:
+      - l1_endpoint=http://zksync-server:3050
+      - networkid=
+      - datadir=/l2geth/data
+      - password=/l2geth/password
+      - unlockAccount=
+      - startblock=
+      - confirmations=10
+      - GENESIS=
