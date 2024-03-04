@@ -156,7 +156,7 @@ Initialize the storage of L1ERC721Gateway.
 | Name | Type | Description |
 |---|---|---|
 | _counterpart | address | The address of L2ERC721Gateway in L2. |
-| _messenger | address | The address of L1ScrollMessenger. |
+| _messenger | address | The address of L1ScrollMessenger in L1. |
 
 ### messenger
 

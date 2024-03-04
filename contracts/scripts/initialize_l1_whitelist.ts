@@ -8,19 +8,14 @@ dotenv.config();
 
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
-
   const [deployer] = await ethers.getSigners();
 
-  const L1GatewayRouter = await ethers.getContractAt(
-    "L1GatewayRouter",
-    addressFile.get("L1GatewayRouter.proxy"),
-    deployer
-  );
-
-  const L1ETHGatewayAddress = addressFile.get("L1ETHGateway.proxy");
-  const L1StandardERC20GatewayAddress = addressFile.get("L1StandardERC20Gateway.proxy");
-  const tx = await L1GatewayRouter.initialize(L1ETHGatewayAddress, L1StandardERC20GatewayAddress);
-  console.log("initialize L1GatewayRouter, hash:", tx.hash);
+  // L1 Whitelist updateWhitelistStatus
+  const L1_WHITELIST_ADDR = addressFile.get("Whitelist");
+  const L1WhiteList = await ethers.getContractAt("Whitelist", L1_WHITELIST_ADDR, deployer);
+  const GasOracleSender = process.env.GAS_PRICE_ORACLE_SENDER || "0x0000000000000000000000000000000000000000";
+  const tx = await L1WhiteList.updateWhitelistStatus([deployer.address, GasOracleSender], true);
+  console.log("L1WhiteList updateWhitelistStatus, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }

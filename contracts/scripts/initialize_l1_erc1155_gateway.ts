@@ -1,7 +1,6 @@
 /* eslint-disable node/no-missing-import */
 import * as dotenv from "dotenv";
 
-import { constants } from "ethers";
 import * as hre from "hardhat";
 import { ethers } from "hardhat";
 import { selectAddressFile } from "./utils";
@@ -10,6 +9,7 @@ dotenv.config();
 
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
+  const addressFileL2 = selectAddressFile("l2geth");
 
   const [deployer] = await ethers.getSigners();
 
@@ -19,15 +19,13 @@ async function main() {
     deployer
   );
 
-  const L1ScrollMessengerAddress = addressFile.get("L1ScrollMessenger.proxy");
-  const L2ERC1155GatewayAddress = process.env.L2_ERC1155_GATEWAY_PROXY_ADDR!;
+  const L1_SCROLL_MESSENGER_ADDR = addressFile.get("L1ScrollMessenger.proxy");
+  const L2_ERC1155_GATEWAY_ADDR = addressFileL2.get("L2ERC1155Gateway.proxy");
 
-  if ((await L1ERC1155Gateway.counterpart()) === constants.AddressZero) {
-    const tx = await L1ERC1155Gateway.initialize(L2ERC1155GatewayAddress, L1ScrollMessengerAddress);
-    console.log("initialize L1ERC1155Gateway, hash:", tx.hash);
-    const receipt = await tx.wait();
-    console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
-  }
+  const tx = await L1ERC1155Gateway.initialize(L2_ERC1155_GATEWAY_ADDR, L1_SCROLL_MESSENGER_ADDR);
+  console.log("initialize L1ERC1155Gateway, hash:", tx.hash);
+  const receipt = await tx.wait();
+  console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

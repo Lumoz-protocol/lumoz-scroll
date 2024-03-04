@@ -162,7 +162,7 @@ Initialize the storage of L1ERC1155Gateway.
 | Name | Type | Description |
 |---|---|---|
 | _counterpart | address | The address of L2ERC1155Gateway in L2. |
-| _messenger | address | The address of L1ScrollMessenger. |
+| _messenger | address | The address of L1ScrollMessenger in L1. |
 
 ### messenger
 
