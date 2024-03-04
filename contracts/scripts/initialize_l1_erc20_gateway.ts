@@ -1,7 +1,6 @@
 /* eslint-disable node/no-missing-import */
 import * as dotenv from "dotenv";
 
-import { constants } from "ethers";
 import * as hre from "hardhat";
 import { ethers } from "hardhat";
 import { selectAddressFile } from "./utils";
@@ -10,6 +9,7 @@ dotenv.config();
 
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
+  const addressFileL2 = selectAddressFile("l2geth");
 
   const [deployer] = await ethers.getSigners();
 
@@ -19,24 +19,21 @@ async function main() {
     deployer
   );
 
-  const L1GatewayRouterAddress = addressFile.get("L1GatewayRouter.proxy");
-  const L1ScrollMessengerAddress = addressFile.get("L1ScrollMessenger.proxy");
-  const L2StandardERC20GatewayAddress = process.env.L2_STANDARD_ERC20_GATEWAY_PROXY_ADDR!;
-  const L2StandardERC20Impl = process.env.L2_SCROLL_STANDARD_ERC20_ADDR!;
-  const L2StandardERC20FactoryAddress = process.env.L2_SCROLL_STANDARD_ERC20_FACTORY_ADDR!;
-
-  if ((await L1StandardERC20Gateway.counterpart()) === constants.AddressZero) {
-    const tx = await L1StandardERC20Gateway.initialize(
-      L2StandardERC20GatewayAddress,
-      L1GatewayRouterAddress,
-      L1ScrollMessengerAddress,
-      L2StandardERC20Impl,
-      L2StandardERC20FactoryAddress
-    );
-    console.log("initialize L1StandardERC20Gateway, hash:", tx.hash);
-    const receipt = await tx.wait();
-    console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
-  }
+  const L1_STANDARD_ERC20_GATEWAY_ADDR = addressFileL2.get("L2StandardERC20Gateway.proxy");
+  const L1_GATEWAY_ROUTER_PROXY_ADDR = addressFile.get("L1GatewayRouter.proxy");
+  const L1_SCROLL_MESSENGER_PROXY_ADDR = addressFile.get("L1ScrollMessenger.proxy");
+  const SCROLL_STANDARD_ERC20 = addressFileL2.get("ScrollStandardERC20");
+  const SCROLL_STANDARD_ERC20_FACTORY_ADDR = addressFileL2.get("ScrollStandardERC20Factory");
+  const tx = await L1StandardERC20Gateway.initialize(
+    L1_STANDARD_ERC20_GATEWAY_ADDR,
+    L1_GATEWAY_ROUTER_PROXY_ADDR,
+    L1_SCROLL_MESSENGER_PROXY_ADDR,
+    SCROLL_STANDARD_ERC20,
+    SCROLL_STANDARD_ERC20_FACTORY_ADDR
+  );
+  console.log("initialize L1ETHGateway, hash:", tx.hash);
+  const receipt = await tx.wait();
+  console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

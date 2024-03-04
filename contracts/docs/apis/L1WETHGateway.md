@@ -152,15 +152,15 @@ function initialize(address _counterpart, address _router, address _messenger) e
 
 Initialize the storage of L1WETHGateway.
 
-
+*The parameters `_counterpart`, `_router` and `_messenger` are no longer used.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | _counterpart | address | The address of L2ETHGateway in L2. |
-| _router | address | The address of L1GatewayRouter. |
-| _messenger | address | The address of L1ScrollMessenger. |
+| _router | address | The address of L1GatewayRouter in L1. |
+| _messenger | address | The address of L1ScrollMessenger in L1. |
 
 ### l2WETH
 

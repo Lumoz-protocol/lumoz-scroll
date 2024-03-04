@@ -130,7 +130,7 @@ Return the corresponding l2 token address given l1 token address.
 ### initialize
 
 ```solidity
-function initialize(address _counterpart, address _router, address _messenger, address _l2TokenImplementation, address _l2TokenFactory) external nonpayable
+function initialize(address _counterpart, address _router, address _messenger, address, address) external nonpayable
 ```
 
 Initialize the storage of L1StandardERC20Gateway.
@@ -142,10 +142,10 @@ Initialize the storage of L1StandardERC20Gateway.
 | Name | Type | Description |
 |---|---|---|
 | _counterpart | address | The address of L2StandardERC20Gateway in L2. |
-| _router | address | The address of L1GatewayRouter. |
-| _messenger | address | The address of L1ScrollMessenger. |
-| _l2TokenImplementation | address | The address of ScrollStandardERC20 implementation in L2. |
-| _l2TokenFactory | address | The address of ScrollStandardERC20Factory contract in L2. |
+| _router | address | The address of L1GatewayRouter in L1. |
+| _messenger | address | The address of L1ScrollMessenger in L1. |
+| _3 | address | undefined |
+| _4 | address | undefined |
 
 ### l2TokenFactory
 

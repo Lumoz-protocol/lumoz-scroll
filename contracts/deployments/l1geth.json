@@ -1,23 +1,56 @@
 {
-  "ProxyAdmin": null,
-  "ZKRollup": {
-    "implementation": null,
-    "proxy": null
+  "ScrollChain": {
+    "plonk_verifier": "0x1DF8dCEd8D4f6668a77eb01Bcf9063832A56377B",
+    "proxy": "0xCf3b18a485B76c5B2f03e58F3A6F1ffb9f5Ac596",
+    "verifier": "0x3F75D2d0D332186B403f39347a34260A9425a817",
+    "multiple_verifier": "0x35D2397EC0bb6F2038B167be579dEAFC03Ab5484",
+    "implementation": "0xcD6b1573a0A69f8234B960DA4eed793813c61f07"
+  },
+  "ProxyAdmin": "0x4E1f0Cd0e1aB9ff46072d329Cf6AC18B121D10aA",
+  "L1MessageQueue": {
+    "proxy": "0xb5A465310EA8002726ebcE77feC17B6BF24b15c1",
+    "implementation": "0xdd85b74710CAA158C139bf295661eD398F003f47"
+  },
+  "L2GasPriceOracle": {
+    "proxy": "0x9592885bc2eDeeB02b9Dfed9a9D3D96b59704708",
+    "implementation": "0xa048214024B2691d438E96d946f248b9EE84A0d6"
   },
   "L1ScrollMessenger": {
-    "implementation": null,
-    "proxy": null
+    "proxy": "0x03C68AdCD000c82C642b35E28501Cc9555D2596e",
+    "implementation": "0x93a915aB0C17F6751A1b78e6b02E5df7D090a099"
   },
   "L1GatewayRouter": {
-    "implementation": null,
-    "proxy": null
+    "proxy": "0xDFa6D6BfeA106E7898D2b7d781F3Ba9C2146257B",
+    "implementation": "0x2d61C1b706f31Ed8FE6781503925925F52237081"
   },
   "L1StandardERC20Gateway": {
-    "implementation": null,
-    "proxy": null
+    "proxy": "0x987FF755d535601587aC4060Afd4551907086156",
+    "implementation": "0x0cc5aAa35C0755E5A93a84956aE39CCf3a4c573b"
   },
   "L1WETHGateway": {
-    "implementation": null,
-    "proxy": null
-  }
+    "proxy": "0x303BaD8Ceef0650fAd69e046919428829fcaD003",
+    "implementation": "0xb38A7f55485D5DEAECB3eCC7Fd1B7C79eFCCcb33"
+  },
+  "L1CustomERC20Gateway": {
+    "proxy": "0x1301638B0eA181e5555AE4C6f9b3Ee687059130B",
+    "implementation": "0x342d936f0384644F9728a837F01B237173eCd33A"
+  },
+  "L1ERC721Gateway": {
+    "proxy": "0xCa3c9B654C970AF9381124E40534D73D92FA2d73",
+    "implementation": "0x2cc0dF6755eb895CBB0E8Bb172DfbdCB2F665994"
+  },
+  "L1ERC1155Gateway": {
+    "proxy": "0x036400BeEc4C0E36aaB7Ac4FDd5790e445Aea606",
+    "implementation": "0xC9cB3783Fdc6B46a3f4BA3FdD58223d29c553f3a"
+  },
+  "L1ETHGateway": {
+    "proxy": "0xd6bb1bE26846E3006D424B745BFe7A3adD7D0501",
+    "implementation": "0x9FD6eD3cDf858a91Da2bb08f4a3DDd987Dcf81C1"
+  },
+  "EnforcedTxGateway": {
+    "proxy": "0xe618A76c54C494f8746AcdF55c04832A6A443266",
+    "implementation": "0x2A27c7E2AFAc7410D624F2C16bC09Dbbe529B1A9"
+  },
+  "WETH": "0xdcC58336CeB46C77B94ec49907EC1A17eCa5D0BB",
+  "Whitelist": "0xC9Bc755F3aB52d8709EC6Cd21942BEaC489fCA4b"
 }

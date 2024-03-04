@@ -10,7 +10,12 @@ dotenv.config();
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
 
-  const [deployer] = await ethers.getSigners();
+  let deployer;
+  if (process.env.CONTRACT_NAME === "ProxyAdmin") {
+    [, deployer] = await ethers.getSigners();
+  } else {
+    [deployer] = await ethers.getSigners();
+  }
 
   if (process.env.CONTRACT_NAME === undefined) {
     throw new Error("env CONTRACT_NAME undefined");
@@ -20,6 +25,7 @@ async function main() {
   const Contract = await ethers.getContractAt(contractName, contractAddress, deployer);
 
   const owner = process.env.CONTRACT_OWNER || deployer.address;
+
   if ((await Contract.owner()).toLowerCase() !== owner.toLowerCase()) {
     const tx = await Contract.transferOwnership(owner);
     console.log(`${contractName} transfer ownership to ${owner}, hash: ${tx.hash}`);

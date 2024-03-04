@@ -6,11 +6,11 @@ import { selectAddressFile } from "./utils";
 async function main() {
   const addressFile = selectAddressFile(hre.network.name);
 
-  const [deployer] = await ethers.getSigners();
+  const [, proxyDeployer] = await ethers.getSigners();
 
   if (!addressFile.get("ProxyAdmin")) {
     console.log(">> Deploy ProxyAdmin");
-    const ProxyAdmin = await ethers.getContractFactory("ProxyAdmin", deployer);
+    const ProxyAdmin = await ethers.getContractFactory("ProxyAdmin", proxyDeployer);
     const proxyAdmin = await ProxyAdmin.deploy();
     console.log(`>> waiting for transaction: ${proxyAdmin.deployTransaction.hash}`);
     await proxyAdmin.deployed();
