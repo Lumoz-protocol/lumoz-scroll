@@ -11,7 +11,7 @@ npx hardhat run scripts/generate_precontract_storage.js
 
 export layer1=l1geth # change to actual network name
 export layer2=l2geth # change to actual network name
-export owner=0x0000000000000000000000000000000000000000 # change to actual owner
+export owner=$OWNER # change to actual owner
 
 # prepare
 npx hardhat --network $layer1 run scripts/deploy_proxy_admin.ts
