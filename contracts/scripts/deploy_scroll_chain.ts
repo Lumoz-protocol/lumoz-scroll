@@ -9,6 +9,10 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   const CHAIN_ID_L2 = process.env.CHAIN_ID_L2 || "none";
+
+  if (process.env.PLONK_VERIFIER) {
+    addressFile.set("ScrollChain.plonk_verifier", process.env.PLONK_VERIFIER);
+  }
   if (!addressFile.get("ScrollChain.verifier")) {
     console.log(">> Deploy ZkEvmVerifierV1");
     const RollupVerifier = await ethers.getContractFactory("ZkEvmVerifierV1", deployer);

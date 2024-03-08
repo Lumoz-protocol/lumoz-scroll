@@ -1,23 +1,52 @@
 {
-  "ProxyAdmin": null,
+  "ProxyAdmin": "0xf26DB67485C19Fa579554285446141201E241922",
   "ZKRollup": {
     "implementation": null,
     "proxy": null
   },
   "L1ScrollMessenger": {
     "implementation": null,
-    "proxy": null
+    "proxy": "0x4Ee83d5B9738F314B3A5b32364898776f71C8a9C"
   },
   "L1GatewayRouter": {
     "implementation": null,
-    "proxy": null
+    "proxy": "0x5CaCaDd81C1EFE6f99Bb82c3a76c4Dcf3081049A"
   },
   "L1StandardERC20Gateway": {
     "implementation": null,
-    "proxy": null
+    "proxy": "0x42224c2c8872186b8243E2Cf9b7F2D1E94948c7E"
   },
   "L1WETHGateway": {
     "implementation": null,
-    "proxy": null
-  }
+    "proxy": "0xA1e2ee2Fd2FdbFa9e729f292cAda5f253D526CFB"
+  },
+  "L1MessageQueue": {
+    "proxy": "0x37711Fd82249212248d519Da2595E2787B3b8dcC"
+  },
+  "L2GasPriceOracle": {
+    "proxy": "0xcBF6697695DF9604c5FD54B294ac07b1c8346a63"
+  },
+  "ScrollChain": {
+    "proxy": "0xAf6Fe11C636987836436456a40493e81Dd0B0751",
+    "plonk_verifier": "0x0000000000000000000000000000000000000000",
+    "verifier": "0x51e2De26083357F2778F78b2d9a14CcFa12DC60f",
+    "multiple_verifier": "0x95d5512d67508E542af400AE28571Fb1ED1D7801",
+    "implementation": "0x67f480F470Cb4985a1d7830EBeBb22749B1Ffa24"
+  },
+  "L1CustomERC20Gateway": {
+    "proxy": "0x231B2db17aeeF583a2791D6c81C00Ce3D47405c9"
+  },
+  "L1ERC721Gateway": {
+    "proxy": "0x96253a34EDAC076eB061956D1B6d9628b29E41AB"
+  },
+  "L1ERC1155Gateway": {
+    "proxy": "0x9c4b569b4B8BB99E8E9F1ba1Dd1Fdf1A22830CB8"
+  },
+  "L1ETHGateway": {
+    "proxy": "0x3F225935A7017F0466f9581FdcafB40f090ff324"
+  },
+  "EnforcedTxGateway": {
+    "proxy": "0xCf6175E5A390BF25F3f0BF052532d3B10f8a0179"
+  },
+  "WETH": "0x5c98161C25BbE76Daf707B834E24270f8d1f180D"
 }

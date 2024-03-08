@@ -1,20 +1,34 @@
 {
-  "ProxyAdmin": null,
+  "ProxyAdmin": "0x9742E029B9365e55E73c150B02bbc502D2ACA5b2",
   "WETH": null,
   "Whitelist": null,
-  "ScrollStandardERC20": null,
-  "ScrollStandardERC20Factory": null,
-  "L2ScrollMessenger": null,
+  "ScrollStandardERC20": "0x553d70b4f7DF6f7AE0C7780068213BdDc3712aB0",
+  "ScrollStandardERC20Factory": "0x2f53E1a4E39fAf9a66630c564451C027dD3E68f6",
+  "L2ScrollMessenger": {
+    "proxy": "0x4F9f873f024faA1D66492022Ca4Ed42603F24116"
+  },
   "L2GatewayRouter": {
     "implementation": null,
-    "proxy": null
+    "proxy": "0xd4AFD163cA1bb4B16dE52744a0B01B5ec7Ef8b6E"
   },
   "L2StandardERC20Gateway": {
     "implementation": null,
-    "proxy": null
+    "proxy": "0x4057cDDEc96adb1CE89e7D9858eE3A87c35D5c80"
   },
   "L2WETHGateway": {
     "implementation": null,
-    "proxy": null
+    "proxy": "0x282fC96b21C77A6d790cf0CEBcDBC4A48F7CF76D"
+  },
+  "L2CustomERC20Gateway": {
+    "proxy": "0xE37B8f7FF230dC577c86596cB3b531d014E3eF4E"
+  },
+  "L2ERC721Gateway": {
+    "proxy": "0xfffF5393FFEc45e804e09BB8Cb1d344A76D9A04f"
+  },
+  "L2ERC1155Gateway": {
+    "proxy": "0x324EA29085E07380359c3F4B81c6042D7c4e7E31"
+  },
+  "L2ETHGateway": {
+    "proxy": "0xe41441c4aEB4988DF9507F44A3A411403004909F"
   }
 }
