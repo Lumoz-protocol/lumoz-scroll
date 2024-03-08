@@ -9,10 +9,6 @@ The scripts should run as below sequence:
 # generate alloc(storage for pre contract) from l2getg
 npx hardhat run scripts/generate_precontract_storage.js
 
-export layer1=l1geth # change to actual network name
-export layer2=l2geth # change to actual network name
-export owner=$OWNER # change to actual owner
-
 # prepare
 npx hardhat --network $layer1 run scripts/deploy_proxy_admin.ts
 npx hardhat --network $layer2 run scripts/deploy_proxy_admin.ts
@@ -61,6 +57,7 @@ npx hardhat --network $layer1 run scripts/initialize_l1_eth_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_erc20_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_custom_erc20_gateway.ts
 npx hardhat --network $layer1 run scripts/initialize_l1_erc721_gateway.ts
+npx hardhat --network $layer1 run scripts/initialize_l1_erc1155_gateway.ts
 npx hardhat --network $layer1 run scripts/add_sequencer.ts
 npx hardhat --network $layer1 run scripts/add_prover.ts
 
@@ -73,6 +70,7 @@ npx hardhat --network $layer2 run scripts/initialize_l2_eth_gateway.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_erc20_gateway.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_custom_erc20_gateway.ts
 npx hardhat --network $layer2 run scripts/initialize_l2_erc721_gateway.ts
+npx hardhat --network $layer2 run scripts/initialize_l2_erc1155_gateway.ts
 
 # transfer ownership in layer 1
 env CONTRACT_NAME=ProxyAdmin CONTRACT_OWNER=$owner npx hardhat run --network $layer1 scripts/transfer_ownership.ts

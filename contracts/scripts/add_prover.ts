@@ -13,7 +13,7 @@ async function main() {
 
   const PROVER_ADDRESS = process.env.PROVER_ADDRESS || deployer.address;
   const tx = await ScrollChain.addProver(PROVER_ADDRESS);
-  console.log(" ScrollChain addSequencer, hash:", tx.hash);
+  console.log(" ScrollChain addProver, hash:", tx.hash);
   const receipt = await tx.wait();
   console.log(`✅ Done, gas used: ${receipt.gasUsed}`);
 }
