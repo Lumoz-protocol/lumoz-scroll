@@ -1,31 +1,37 @@
 {
-  "ProxyAdmin": "0x5e887518a4FdBB4Bc562E4E6A84413c861eBB5F3",
+  "ProxyAdmin": "0x36bbcB536e75376bC76284f4dcad01eA973a3Ea7",
   "L2ScrollMessenger": {
-    "proxy": "0x2d9a8FBe2CE62E94Da5d7D17097c97f4Bd21e3Fa",
-    "implementation": "0x2cbE6254E2fC451d0AB245408877Cd61B9be57e9"
+    "proxy": "0x43f5292A046Bb530689dEe4C0A2D8eeC81A62494",
+    "implementation": "0x45c75282899c43C55F6CDeAe3A5F90CdC95F9277"
   },
   "L2GatewayRouter": {
-    "proxy": "0xa1CEbAd2880514640C1FD50e9BfF16F40DE21032",
-    "implementation": "0xFA485b5bAb641EcC7057f650e0FeCbFa3408e6b3"
+    "proxy": "0xC88AC5E4d2e6A061bC9d24880FC61BF685B54cce",
+    "implementation": "0x6444b46043d1FA4654b00674177Ba5FeA386Dc5B"
   },
   "L2StandardERC20Gateway": {
-    "proxy": "0x0CD4fa054890EFeb659Cff3c9e9D4dad0177FB9b"
+    "proxy": "0xF4B9A30dA0c4786636b3c8E5bAD96da68F2aC25B",
+    "implementation": "0xe5A86966daA6147fe93703282992Db49b4f3d885"
   },
   "L2WETHGateway": {
-    "proxy": "0xa2c7AD4F6CA561A496Cf56f529cCe03B056606A9"
+    "proxy": "0x9DBCe5c8421948994e6d262d6698cf86346746d8",
+    "implementation": "0x2230a9C7c84DD9BDfC77F77B6973d17c9d8203cB"
   },
   "L2CustomERC20Gateway": {
-    "proxy": "0x73AE32d24Ce9755F574A819B0dDdf5aCf3Cb2Fd9"
+    "proxy": "0x43a885296Aec7cff6Dae9Db8af57f3d99C6e3faE",
+    "implementation": "0xddf281E956515388c3B9B12e26CcD3ac55b58149"
   },
   "L2ERC721Gateway": {
-    "proxy": "0x8af27906766e10F65153Df536E5271E0A7a15bEC"
+    "proxy": "0xF134078a973835fb59C97775E371E5D085C83A82",
+    "implementation": "0x8cD8b7aF3a2D4F95f4cED2F2abd5Cc55eb580393"
   },
   "L2ERC1155Gateway": {
-    "proxy": "0x4BE3EB0b58Db76e59Ccf3d8c1eE6c3dcCbfCdbA1"
+    "proxy": "0x516a8abC6aE458228d0cf83D9012cE609E72792a",
+    "implementation": "0xe251650c6eEB1d9Cc146111e65c42a9650fF4d28"
   },
   "L2ETHGateway": {
-    "proxy": "0xd9b49386be70B3aBE932AFEa4bDbD352D396eea9"
+    "proxy": "0xFEd179D5dEe77EcE1faE0db6BcDCfAe8c5076eb4",
+    "implementation": "0x5065ddd55D6461cd47ea23849C8C308C27308a02"
   },
-  "ScrollStandardERC20": "0xd7dbD6444BC898d3EdDEf4D45cc8e8b0142f7864",
-  "ScrollStandardERC20Factory": "0xa1056630d90eD0857872141614dC936cC41D8A7C"
+  "ScrollStandardERC20": "0xD7FdDdD597eB8A175BbccD2C7d95FdeCa29Fc67d",
+  "ScrollStandardERC20Factory": "0x0b3D41df2b6ae187C08D1422C0Ac43C57871DA27"
 }

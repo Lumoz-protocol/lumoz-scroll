@@ -8,6 +8,10 @@ async function main() {
 
   const [deployer] = await ethers.getSigners();
 
+  if (process.env.L1_WETH_ADDR) {
+    addressFile.set("WETH", process.env.L1_WETH_ADDR);
+  }
+
   if (!addressFile.get("WETH")) {
     console.log(">> Deploy WETH");
     const WrappedEther = await ethers.getContractFactory("WrappedEther", deployer);
