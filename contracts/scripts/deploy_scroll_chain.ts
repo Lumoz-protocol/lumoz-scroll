@@ -35,10 +35,20 @@ async function main() {
 
   if (!addressFile.get("ScrollChain.implementation")) {
     console.log(">> Deploy ScrollChain implementation");
-    const ScrollChain = await ethers.getContractFactory("ScrollChain", {
-      libraries: {},
-      signer: deployer,
-    });
+    let ScrollChain;
+    if (process.env.MOCK_PROVER) {
+      console.log("deploy mock scrollchain");
+      ScrollChain = await ethers.getContractFactory("ScrollChain", {
+        libraries: {},
+        signer: deployer,
+      });
+    } else {
+      ScrollChain = await ethers.getContractFactory("MockScrollChain", {
+        libraries: {},
+        signer: deployer,
+      });
+    }
+
     const L1MessageQueueAddress = addressFile.get("L1MessageQueue.proxy");
     const verifierAddress = addressFile.get("ScrollChain.multiple_verifier");
     const impl = await ScrollChain.deploy(CHAIN_ID_L2, L1MessageQueueAddress, verifierAddress);

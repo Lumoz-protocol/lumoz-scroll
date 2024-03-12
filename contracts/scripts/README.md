@@ -23,7 +23,8 @@ npx hardhat --network $layer2 run scripts/deploy_l2_token_factory.ts
 npx hardhat --network $layer1 run scripts/deploy_weth.ts
 
 # deploy contracts in layer 1, set plonk verifier before deploy scroll chain, deploy weth only for test
-npx hardhat --network $layer1 run scripts/deploy_scroll_chain.ts
+npx hardhat --network $layer1 run scripts/deploy_scroll_chain.ts # deploy scrollchain
+env MOCK_PROVER=true npx hardhat --network $layer1 run scripts/deploy_scroll_chain.ts # deploy mock scrollchain
 npx hardhat --network $layer1 run scripts/deploy_whitelist.ts
 npx hardhat --network $layer1 run scripts/deploy_l1_scroll_messenger.ts
 env CONTRACT_NAME=L1GatewayRouter npx hardhat run --network $layer1 scripts/deploy_proxy_contract.ts

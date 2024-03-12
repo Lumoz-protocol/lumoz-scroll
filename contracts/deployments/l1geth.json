@@ -29,7 +29,7 @@
     "plonk_verifier": "0x0000000000000000000000000000000000000000",
     "verifier": "0x35dDe88bca62d17a19952A6131c8a8372a873364",
     "multiple_verifier": "0x0cdfEF1753cCCb8d0Cc91BCD9fC3Cd9390a1A3C5",
-    "implementation": "0xF64AAEf5faCd67268d11A6f7dbe5123e9fdf9546"
+    "implementation": "0x3FDf552CD9AE0Aeee1c62CB222f16D9baad76023"
   },
   "L1CustomERC20Gateway": {
     "proxy": "0xe173894f7bd199e6225Bdb51F191ADeC06CA4444",
